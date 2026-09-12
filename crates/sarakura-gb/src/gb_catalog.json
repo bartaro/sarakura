@@ -1,0 +1,1882 @@
+[
+  {
+    "id": "GBD001",
+    "event_type": "VRAM_WRITE_OUTSIDE_SAFE_PERIOD",
+    "phase": "MVP-1",
+    "severity": "error",
+    "category": "PPU/VRAM",
+    "detection_condition": "CPU writes VRAM (0x8000-0x9FFF) with the LCD enabled during PPU mode 3 or another period KOKURA considers unsafe. Permitted CGB HDMA windows are excluded.",
+    "required_metadata": [
+      "vram_operations",
+      "pc_ranges",
+      "functions",
+      "display_configs",
+      "vblank_queue_ops"
+    ],
+    "event_fields": [
+      "pc",
+      "bank",
+      "frame",
+      "scanline",
+      "dot",
+      "ppu_mode",
+      "addr",
+      "value",
+      "op_kind",
+      "function_id_guess"
+    ],
+    "repair_target_candidates": [
+      "vblank_queue",
+      "wait_vblank_guard",
+      "move_to_init",
+      "reduce_runtime_vram_write"
+    ],
+    "safe_patch_hint": "Move transfers to the VBlank queue or guard them with WaitVBlank. Move initialization-only transfers to the LCD-off initialization phase.",
+    "fixtures": {
+      "red": "fixture_vram_unsafe_settile",
+      "green": "fixture_vram_queue_fixed",
+      "raw": "fixture_vram_unsafe_settile / fixture_vram_queue_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_vram_unsafe_settile as the failing test and fixture_vram_queue_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD002",
+    "event_type": "VRAM_READ_DURING_BLOCKED_PERIOD",
+    "phase": "MVP-2",
+    "severity": "warn",
+    "category": "PPU/VRAM",
+    "detection_condition": "CPU reads VRAM during a period such as PPU mode 3 when hardware reads may be unstable or return 0xFF.",
+    "required_metadata": [
+      "vram_operations",
+      "pc_ranges",
+      "functions"
+    ],
+    "event_fields": [
+      "pc",
+      "bank",
+      "frame",
+      "scanline",
+      "dot",
+      "ppu_mode",
+      "addr",
+      "read_value",
+      "function_id_guess"
+    ],
+    "repair_target_candidates": [
+      "cache_vram_state",
+      "avoid_runtime_vram_read",
+      "mirror_buffer"
+    ],
+    "safe_patch_hint": "Keep game state in a WRAM mirror or metadata-mapped state variables instead of reading it from VRAM.",
+    "fixtures": {
+      "red": "fixture_vram_read_mode3",
+      "green": "fixture_vram_read_mirror_fixed",
+      "raw": "fixture_vram_read_mode3 / fixture_vram_read_mirror_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_vram_read_mode3 as the failing test and fixture_vram_read_mirror_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD003",
+    "event_type": "OAM_ACCESS_DURING_FORBIDDEN_PERIOD",
+    "phase": "MVP-1",
+    "severity": "error",
+    "category": "PPU/OAM",
+    "detection_condition": "CPU accesses OAM (0xFE00-0xFE9F) during PPU mode 2/3 or OAM DMA.",
+    "required_metadata": [
+      "oam_operations",
+      "sprite_objects",
+      "metasprite_instances",
+      "pc_ranges",
+      "functions"
+    ],
+    "event_fields": [
+      "pc",
+      "bank",
+      "frame",
+      "scanline",
+      "dot",
+      "ppu_mode",
+      "addr",
+      "access_kind",
+      "dma_active"
+    ],
+    "repair_target_candidates": [
+      "shadow_oam",
+      "oam_dma_schedule",
+      "metasprite_buffer"
+    ],
+    "safe_patch_hint": "Update shadow OAM and commit it with OAM DMA during VBlank.",
+    "fixtures": {
+      "red": "fixture_oam_direct_write",
+      "green": "fixture_shadow_oam_dma_fixed",
+      "raw": "fixture_oam_direct_write / fixture_shadow_oam_dma_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_oam_direct_write as the failing test and fixture_shadow_oam_dma_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD004",
+    "event_type": "OAM_DMA_SOURCE_UNSAFE",
+    "phase": "MVP-2",
+    "severity": "warn",
+    "category": "PPU/OAM/DMA",
+    "detection_condition": "The OAM DMA source is an unexpected memory region, an uninitialized buffer, or switchable WRAMX.",
+    "required_metadata": [
+      "dma_operations",
+      "oam_shadow_buffers",
+      "wram_layout",
+      "bank_layout"
+    ],
+    "event_fields": [
+      "pc",
+      "bank",
+      "frame",
+      "dma_source",
+      "expected_source",
+      "wram_bank",
+      "function_id_guess"
+    ],
+    "repair_target_candidates": [
+      "oam_shadow_buffer",
+      "fixed_wram_bank",
+      "dma_source_config"
+    ],
+    "safe_patch_hint": "Place shadow OAM in fixed WRAM and remove the DMA source's dependency on the WRAMX bank.",
+    "fixtures": {
+      "red": "fixture_dma_bad_source",
+      "green": "fixture_dma_fixed_source",
+      "raw": "fixture_dma_bad_source / fixture_dma_fixed_source"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_dma_bad_source as the failing test and fixture_dma_fixed_source as the passing test."
+    ]
+  },
+  {
+    "id": "GBD005",
+    "event_type": "DMA_OR_HDMA_CONFLICT",
+    "phase": "MVP-1",
+    "severity": "error",
+    "category": "DMA/HDMA",
+    "detection_condition": "CPU/PPU/VRAM/OAM accesses conflict during OAM DMA, GDMA, or HDMA and may fail at hardware timing.",
+    "required_metadata": [
+      "dma_operations",
+      "hdma_operations",
+      "vram_operations",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "pc",
+      "bank",
+      "frame",
+      "scanline",
+      "dot",
+      "dma_kind",
+      "dma_active",
+      "addr",
+      "access_kind"
+    ],
+    "repair_target_candidates": [
+      "dma_schedule",
+      "hdma_queue",
+      "split_transfer",
+      "wait_dma_complete"
+    ],
+    "safe_patch_hint": "Avoid conflicting accesses during DMA. Distribute HDMA over HBlanks and account for GDMA CPU stall time.",
+    "fixtures": {
+      "red": "fixture_hdma_conflict",
+      "green": "fixture_hdma_split_fixed",
+      "raw": "fixture_hdma_conflict / fixture_hdma_split_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_hdma_conflict as the failing test and fixture_hdma_split_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD006",
+    "event_type": "HDMA_TRANSFER_DURING_UNSAFE_MODE",
+    "phase": "MVP-2",
+    "severity": "warn",
+    "category": "CGB/HDMA",
+    "detection_condition": "CGB HDMA starts or continues in an unexpected LCD state or outside HBlank, producing a transfer mismatch.",
+    "required_metadata": [
+      "hdma_operations",
+      "display_configs",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "pc",
+      "bank",
+      "frame",
+      "scanline",
+      "dot",
+      "hdma_mode",
+      "lcd_enabled",
+      "ppu_mode"
+    ],
+    "repair_target_candidates": [
+      "hdma_schedule",
+      "vblank_transfer_queue",
+      "lcd_off_init_transfer"
+    ],
+    "safe_patch_hint": "Make HDMA start conditions explicit and distinguish HBlank HDMA from GDMA in build metadata.",
+    "fixtures": {
+      "red": "fixture_hdma_wrong_mode",
+      "green": "fixture_hdma_hblank_fixed",
+      "raw": "fixture_hdma_wrong_mode / fixture_hdma_hblank_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_hdma_wrong_mode as the failing test and fixture_hdma_hblank_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD007",
+    "event_type": "VRAM_BULK_TRANSFER_TOO_LARGE",
+    "phase": "MVP-1",
+    "severity": "warn",
+    "category": "PPU/VRAM/Performance",
+    "detection_condition": "Scheduled VRAM transfers exceed the safe per-frame or per-VBlank limit according to estimates or measurements.",
+    "required_metadata": [
+      "vram_operations",
+      "vblank_queue_ops",
+      "static_cost_estimates"
+    ],
+    "event_fields": [
+      "frame",
+      "transfer_bytes",
+      "estimated_cycles",
+      "budget_cycles",
+      "queue_id",
+      "culprit_ops"
+    ],
+    "repair_target_candidates": [
+      "split_transfer",
+      "dirty_rect",
+      "tile_cache",
+      "hdma_candidate"
+    ],
+    "safe_patch_hint": "Distribute transfers across frames; consider dirty rectangles, differential updates, and HDMA.",
+    "fixtures": {
+      "red": "fixture_vram_bulk_over",
+      "green": "fixture_dirty_rect_fixed",
+      "raw": "fixture_vram_bulk_over / fixture_dirty_rect_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_vram_bulk_over as the failing test and fixture_dirty_rect_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD008",
+    "event_type": "VBLANK_QUEUE_OVERFLOW",
+    "phase": "MVP-2",
+    "severity": "warn",
+    "category": "PPU/VRAM Queue",
+    "detection_condition": "The VBlank queue exceeds its entry or byte capacity, risking missing transfers or dropped frames.",
+    "required_metadata": [
+      "vblank_queue_ops",
+      "queue_limits",
+      "static_cost_estimates"
+    ],
+    "event_fields": [
+      "frame",
+      "queue_id",
+      "item_count",
+      "byte_count",
+      "max_items",
+      "max_bytes",
+      "dropped_count"
+    ],
+    "repair_target_candidates": [
+      "queue_capacity",
+      "coalesce_updates",
+      "priority_transfer"
+    ],
+    "safe_patch_hint": "Combine updates to the same region, defer low-priority transfers, and review queue capacity and priorities.",
+    "fixtures": {
+      "red": "fixture_vblank_queue_overflow",
+      "green": "fixture_queue_coalesced",
+      "raw": "fixture_vblank_queue_overflow / fixture_queue_coalesced"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_vblank_queue_overflow as the failing test and fixture_queue_coalesced as the passing test."
+    ]
+  },
+  {
+    "id": "GBD009",
+    "event_type": "WAIT_VBLANK_MISSING",
+    "phase": "MVP-1",
+    "severity": "warn",
+    "category": "Sync/VBlank",
+    "detection_condition": "A VRAM/OAM/display update API is called without waiting for VBlank or using the transfer queue. Static or dynamic patterns can detect this without a direct violation event.",
+    "required_metadata": [
+      "vram_operations",
+      "oam_operations",
+      "call_graph",
+      "known_wait_functions"
+    ],
+    "event_fields": [
+      "pc",
+      "bank",
+      "function_id",
+      "caller_function_id",
+      "api_kind",
+      "has_wait_guard"
+    ],
+    "repair_target_candidates": [
+      "insert_wait_vblank",
+      "use_present_screen",
+      "vblank_queue"
+    ],
+    "safe_patch_hint": "Insert WaitVBlank/PresentScreen around display update APIs or route updates through the VBlank queue.",
+    "fixtures": {
+      "red": "fixture_missing_wait",
+      "green": "fixture_wait_inserted",
+      "raw": "fixture_missing_wait / fixture_wait_inserted"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_missing_wait as the failing test and fixture_wait_inserted as the passing test."
+    ]
+  },
+  {
+    "id": "GBD010",
+    "event_type": "FRAME_CPU_BUDGET_EXCEEDED",
+    "phase": "MVP-2",
+    "severity": "warn",
+    "category": "Performance/Frame",
+    "detection_condition": "CPU cycles or main-loop work exceed the frame budget, delaying music, input, or display updates.",
+    "required_metadata": [
+      "functions",
+      "static_cost_estimates",
+      "frame_markers",
+      "audio_update_functions"
+    ],
+    "event_fields": [
+      "frame",
+      "cycles",
+      "budget_cycles",
+      "top_functions",
+      "bank_switch_count"
+    ],
+    "repair_target_candidates": [
+      "optimize_hot_function",
+      "split_work",
+      "reduce_ai_search",
+      "move_to_precompute"
+    ],
+    "safe_patch_hint": "Split expensive work and assign separate budgets to search, AI, rendering, and audio.",
+    "fixtures": {
+      "red": "fixture_frame_budget_over",
+      "green": "fixture_work_split",
+      "raw": "fixture_frame_budget_over / fixture_work_split"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_frame_budget_over as the failing test and fixture_work_split as the passing test."
+    ]
+  },
+  {
+    "id": "GBD011",
+    "event_type": "HOT_FUNCTION_OVER_BUDGET",
+    "phase": "MVP-2",
+    "severity": "info",
+    "category": "Performance/Profile",
+    "detection_condition": "A function exceeds a profiler threshold for total cycles, worst-case cycles, or call density.",
+    "required_metadata": [
+      "functions",
+      "pc_ranges",
+      "static_cost_estimates"
+    ],
+    "event_fields": [
+      "function_id",
+      "calls",
+      "total_cycles",
+      "worst_cycles",
+      "frame_density"
+    ],
+    "repair_target_candidates": [
+      "optimize_function",
+      "inline_or_outline",
+      "replace_intrinsic",
+      "reduce_calls"
+    ],
+    "safe_patch_hint": "Optimize hot functions, reduce calls, use intrinsics, or precompute results.",
+    "fixtures": {
+      "red": "fixture_hot_func",
+      "green": "fixture_hot_func_optimized",
+      "raw": "fixture_hot_func / fixture_hot_func_optimized"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_hot_func as the failing test and fixture_hot_func_optimized as the passing test."
+    ]
+  },
+  {
+    "id": "GBD012",
+    "event_type": "SPRITE_PER_LINE_OVERFLOW",
+    "phase": "MVP-1",
+    "severity": "warn",
+    "category": "Sprite/OAM",
+    "detection_condition": "Sprites on a scanline exceed the GB hardware limit and may disappear.",
+    "required_metadata": [
+      "sprite_objects",
+      "metasprite_instances",
+      "oam_operations",
+      "source_map"
+    ],
+    "event_fields": [
+      "frame",
+      "scanline",
+      "sprite_count",
+      "limit",
+      "sprite_ids",
+      "metasprite_id"
+    ],
+    "repair_target_candidates": [
+      "sprite_culling",
+      "metasprite_layout",
+      "flicker_scheduler",
+      "reduce_sprite_size"
+    ],
+    "safe_patch_hint": "Adjust sprite placement; use flicker scheduling, culling, and metasprite splitting.",
+    "fixtures": {
+      "red": "fixture_sprite_line_over",
+      "green": "fixture_sprite_culled",
+      "raw": "fixture_sprite_line_over / fixture_sprite_culled"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_sprite_line_over as the failing test and fixture_sprite_culled as the passing test."
+    ]
+  },
+  {
+    "id": "GBD013",
+    "event_type": "OAM_SHADOW_OVERFLOW",
+    "phase": "MVP-2",
+    "severity": "error",
+    "category": "Sprite/OAM",
+    "detection_condition": "Shadow OAM entries exceed 40 sprites or the configured capacity.",
+    "required_metadata": [
+      "sprite_objects",
+      "metasprite_instances",
+      "oam_shadow_buffers"
+    ],
+    "event_fields": [
+      "frame",
+      "object_count",
+      "max_objects",
+      "metasprite_id",
+      "function_id_guess"
+    ],
+    "repair_target_candidates": [
+      "sprite_culling",
+      "object_pool_limit",
+      "metasprite_split"
+    ],
+    "safe_patch_hint": "Limit visible sprites to 40 entries and cull by priority.",
+    "fixtures": {
+      "red": "fixture_shadow_oam_overflow",
+      "green": "fixture_shadow_oam_capped",
+      "raw": "fixture_shadow_oam_overflow / fixture_shadow_oam_capped"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_shadow_oam_overflow as the failing test and fixture_shadow_oam_capped as the passing test."
+    ]
+  },
+  {
+    "id": "GBD014",
+    "event_type": "METASPRITE_CLIPPING_OVERFLOW",
+    "phase": "MVP-3",
+    "severity": "warn",
+    "category": "Sprite/Metasprite",
+    "detection_condition": "Metasprite expansion produces unexpected OAM values through clipping errors or coordinate overflow.",
+    "required_metadata": [
+      "metasprite_instances",
+      "sprite_objects",
+      "coordinate_ranges"
+    ],
+    "event_fields": [
+      "frame",
+      "metasprite_id",
+      "x",
+      "y",
+      "sprite_count",
+      "clipped_count"
+    ],
+    "repair_target_candidates": [
+      "clip_metasprite",
+      "signed_coord_fix",
+      "split_metasprite"
+    ],
+    "safe_patch_hint": "Correct coordinate types and clipping; do not emit off-screen sprites into OAM.",
+    "fixtures": {
+      "red": "fixture_metasprite_clip_bad",
+      "green": "fixture_metasprite_clip_fixed",
+      "raw": "fixture_metasprite_clip_bad / fixture_metasprite_clip_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_metasprite_clip_bad as the failing test and fixture_metasprite_clip_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD015",
+    "event_type": "LCDC_TILEMAP_PREMISE_MISMATCH",
+    "phase": "MVP-1",
+    "severity": "warn",
+    "category": "LCDC/Tilemap",
+    "detection_condition": "LCDC tilemap/window/tile-data settings at runtime differ from KITAQGB rendering metadata.",
+    "required_metadata": [
+      "display_configs",
+      "tilemap_operations",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "frame",
+      "lcdc_value",
+      "expected_tilemap",
+      "actual_tilemap",
+      "function_id_guess"
+    ],
+    "repair_target_candidates": [
+      "display_config",
+      "lcdc_init",
+      "map_base_fix"
+    ],
+    "safe_patch_hint": "Make LCDC initialization, BG/window tilemap bases, and tile-data addressing consistent.",
+    "fixtures": {
+      "red": "fixture_lcdc_premise_mismatch",
+      "green": "fixture_lcdc_fixed",
+      "raw": "fixture_lcdc_premise_mismatch / fixture_lcdc_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_lcdc_premise_mismatch as the failing test and fixture_lcdc_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD016",
+    "event_type": "WINDOW_ENABLE_RACE",
+    "phase": "MVP-3",
+    "severity": "warn",
+    "category": "LCDC/Window",
+    "detection_condition": "Window enable, WX/WY, and window tilemap updates occur in an unstable order within a frame.",
+    "required_metadata": [
+      "display_configs",
+      "window_operations",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "frame",
+      "scanline",
+      "wx",
+      "wy",
+      "lcdc",
+      "update_order"
+    ],
+    "repair_target_candidates": [
+      "window_update_order",
+      "wait_vblank_guard"
+    ],
+    "safe_patch_hint": "Group window settings in VBlank and avoid toggling window enable during rendering.",
+    "fixtures": {
+      "red": "fixture_window_race",
+      "green": "fixture_window_vblank_fixed",
+      "raw": "fixture_window_race / fixture_window_vblank_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_window_race as the failing test and fixture_window_vblank_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD017",
+    "event_type": "SCX_SCY_MIDLINE_WRITE_RISK",
+    "phase": "MVP-3",
+    "severity": "info",
+    "category": "Scroll/Timing",
+    "detection_condition": "SCX/SCY changes within a scanline may cause unintended scroll splits or jitter. Intentional splits require an allow flag in metadata.",
+    "required_metadata": [
+      "scroll_operations",
+      "display_configs",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "frame",
+      "scanline",
+      "dot",
+      "reg",
+      "value",
+      "allowed_split"
+    ],
+    "repair_target_candidates": [
+      "scroll_update_schedule",
+      "mark_intentional_split"
+    ],
+    "safe_patch_hint": "Move unintended changes to VBlank. Mark intentional splits with allow metadata.",
+    "fixtures": {
+      "red": "fixture_scroll_midline_unmarked",
+      "green": "fixture_scroll_marked",
+      "raw": "fixture_scroll_midline_unmarked / fixture_scroll_marked"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_scroll_midline_unmarked as the failing test and fixture_scroll_marked as the passing test."
+    ]
+  },
+  {
+    "id": "GBD018",
+    "event_type": "STAT_MODE_ASSUMPTION_MISMATCH",
+    "phase": "MVP-2",
+    "severity": "warn",
+    "category": "STAT/IRQ",
+    "detection_condition": "Runtime STAT mode or interrupt state differs from the code's assumptions.",
+    "required_metadata": [
+      "stat_wait_patterns",
+      "interrupt_handlers",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "pc",
+      "frame",
+      "scanline",
+      "expected_mode",
+      "actual_mode",
+      "stat_value"
+    ],
+    "repair_target_candidates": [
+      "stat_wait_fix",
+      "interrupt_config_fix"
+    ],
+    "safe_patch_hint": "Align STAT wait loops with interrupt settings and stabilize the mode-transition assumptions.",
+    "fixtures": {
+      "red": "fixture_stat_assumption_bad",
+      "green": "fixture_stat_fixed",
+      "raw": "fixture_stat_assumption_bad / fixture_stat_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_stat_assumption_bad as the failing test and fixture_stat_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD019",
+    "event_type": "STAT_INTERRUPT_STORM",
+    "phase": "MVP-3",
+    "severity": "warn",
+    "category": "STAT/IRQ",
+    "detection_condition": "Excessive STAT interrupts consume frame-processing or audio-update time.",
+    "required_metadata": [
+      "interrupt_handlers",
+      "stat_configs",
+      "functions"
+    ],
+    "event_fields": [
+      "frame",
+      "interrupt_count",
+      "threshold",
+      "handler_id",
+      "cycles"
+    ],
+    "repair_target_candidates": [
+      "stat_irq_mask",
+      "handler_budget",
+      "reduce_interrupt_source"
+    ],
+    "safe_patch_hint": "Disable unnecessary STAT interrupts and shorten the handler.",
+    "fixtures": {
+      "red": "fixture_stat_storm",
+      "green": "fixture_stat_masked",
+      "raw": "fixture_stat_storm / fixture_stat_masked"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_stat_storm as the failing test and fixture_stat_masked as the passing test."
+    ]
+  },
+  {
+    "id": "GBD020",
+    "event_type": "VBLANK_HANDLER_OVERRUN",
+    "phase": "MVP-2",
+    "severity": "error",
+    "category": "VBlank/IRQ",
+    "detection_condition": "VBlank handling exceeds its safe budget and extends into the next rendering period.",
+    "required_metadata": [
+      "interrupt_handlers",
+      "vblank_queue_ops",
+      "static_cost_estimates"
+    ],
+    "event_fields": [
+      "frame",
+      "cycles",
+      "budget_cycles",
+      "handler_id",
+      "queue_bytes"
+    ],
+    "repair_target_candidates": [
+      "split_vblank_work",
+      "reduce_transfer",
+      "defer_low_priority"
+    ],
+    "safe_patch_hint": "Split VBlank work and reduce or prioritize queued transfers.",
+    "fixtures": {
+      "red": "fixture_vblank_overrun",
+      "green": "fixture_vblank_split",
+      "raw": "fixture_vblank_overrun / fixture_vblank_split"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_vblank_overrun as the failing test and fixture_vblank_split as the passing test."
+    ]
+  },
+  {
+    "id": "GBD021",
+    "event_type": "INTERRUPT_DISABLED_TOO_LONG",
+    "phase": "MVP-1",
+    "severity": "warn",
+    "category": "IRQ/Timing",
+    "detection_condition": "The DI-to-EI interval exceeds its threshold, delaying VBlank, audio, timer, or input work.",
+    "required_metadata": [
+      "critical_sections",
+      "functions",
+      "audio_update_functions"
+    ],
+    "event_fields": [
+      "pc_start",
+      "pc_end",
+      "cycles",
+      "function_id",
+      "reason_guess"
+    ],
+    "repair_target_candidates": [
+      "shorten_critical_section",
+      "move_work_outside_di",
+      "atomic_minimize"
+    ],
+    "safe_patch_hint": "Shorten interrupt-disabled sections; keep only necessary memory operations inside them.",
+    "fixtures": {
+      "red": "fixture_di_too_long",
+      "green": "fixture_di_shortened",
+      "raw": "fixture_di_too_long / fixture_di_shortened"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_di_too_long as the failing test and fixture_di_shortened as the passing test."
+    ]
+  },
+  {
+    "id": "GBD022",
+    "event_type": "TIMER_FREQUENCY_MISMATCH",
+    "phase": "MVP-3",
+    "severity": "warn",
+    "category": "Timer",
+    "detection_condition": "TIMA/TMA/TAC settings differ from KITAQGB timer assumptions or the audio/game tick period.",
+    "required_metadata": [
+      "timer_configs",
+      "audio_update_functions",
+      "functions"
+    ],
+    "event_fields": [
+      "frame",
+      "tac",
+      "tma",
+      "tima_rate",
+      "expected_rate"
+    ],
+    "repair_target_candidates": [
+      "timer_config_fix",
+      "audio_tick_source_fix"
+    ],
+    "safe_patch_hint": "Make timer configuration and audio/game tick sources consistent.",
+    "fixtures": {
+      "red": "fixture_timer_mismatch",
+      "green": "fixture_timer_fixed",
+      "raw": "fixture_timer_mismatch / fixture_timer_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_timer_mismatch as the failing test and fixture_timer_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD023",
+    "event_type": "INPUT_POLL_JITTER",
+    "phase": "MVP-3",
+    "severity": "info",
+    "category": "Input/Timing",
+    "detection_condition": "Input polling intervals vary greatly, risking latency, duplicate input, or link synchronization drift.",
+    "required_metadata": [
+      "input_poll_functions",
+      "frame_markers",
+      "functions"
+    ],
+    "event_fields": [
+      "frame",
+      "poll_interval_frames",
+      "jitter",
+      "function_id"
+    ],
+    "repair_target_candidates": [
+      "poll_once_per_frame",
+      "stable_input_phase"
+    ],
+    "safe_patch_hint": "Poll input once per frame at a fixed point.",
+    "fixtures": {
+      "red": "fixture_input_jitter",
+      "green": "fixture_input_stable",
+      "raw": "fixture_input_jitter / fixture_input_stable"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_input_jitter as the failing test and fixture_input_stable as the passing test."
+    ]
+  },
+  {
+    "id": "GBD024",
+    "event_type": "APU_UPDATE_JITTER",
+    "phase": "MVP-1",
+    "severity": "warn",
+    "category": "Audio/APU",
+    "detection_condition": "APU update intervals vary beyond the threshold, risking tempo changes, dropouts, or buzzing.",
+    "required_metadata": [
+      "audio_update_functions",
+      "frame_markers",
+      "functions"
+    ],
+    "event_fields": [
+      "frame",
+      "interval_frames",
+      "jitter",
+      "function_id",
+      "call_count"
+    ],
+    "repair_target_candidates": [
+      "stable_audio_tick",
+      "move_audio_to_vblank_or_timer",
+      "split_cpu_work"
+    ],
+    "safe_patch_hint": "Run audio updates on a fixed VBlank/timer tick and continue servicing audio during expensive work.",
+    "fixtures": {
+      "red": "fixture_apu_jitter",
+      "green": "fixture_apu_stable",
+      "raw": "fixture_apu_jitter / fixture_apu_stable"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_apu_jitter as the failing test and fixture_apu_stable as the passing test."
+    ]
+  },
+  {
+    "id": "GBD025",
+    "event_type": "APU_REGISTER_WRITE_RATE_TOO_HIGH",
+    "phase": "MVP-3",
+    "severity": "warn",
+    "category": "Audio/APU",
+    "detection_condition": "Excessive or repeated NRxx writes may cause clicks, noise, or CPU overhead.",
+    "required_metadata": [
+      "audio_register_writes",
+      "audio_update_functions",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "frame",
+      "reg",
+      "write_count",
+      "threshold",
+      "function_id"
+    ],
+    "repair_target_candidates": [
+      "audio_state_diffing",
+      "reduce_register_writes"
+    ],
+    "safe_patch_hint": "Write APU registers only when their values need to change.",
+    "fixtures": {
+      "red": "fixture_apu_write_spam",
+      "green": "fixture_apu_diffed",
+      "raw": "fixture_apu_write_spam / fixture_apu_diffed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_apu_write_spam as the failing test and fixture_apu_diffed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD026",
+    "event_type": "CH3_WAVE_WRITE_WHILE_PLAYING_RISK",
+    "phase": "MVP-2",
+    "severity": "warn",
+    "category": "Audio/CH3",
+    "detection_condition": "CH3 wave RAM is updated during playback or at unsafe timing.",
+    "required_metadata": [
+      "ch3_wave_ops",
+      "audio_update_functions",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "frame",
+      "pc",
+      "wave_addr",
+      "ch3_enabled",
+      "function_id"
+    ],
+    "repair_target_candidates": [
+      "mute_ch3_before_wave_write",
+      "schedule_wave_update"
+    ],
+    "safe_patch_hint": "Update wave RAM while CH3 is stopped or during a verified safe window.",
+    "fixtures": {
+      "red": "fixture_ch3_wave_live_write",
+      "green": "fixture_ch3_safe_write",
+      "raw": "fixture_ch3_wave_live_write / fixture_ch3_safe_write"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_ch3_wave_live_write as the failing test and fixture_ch3_safe_write as the passing test."
+    ]
+  },
+  {
+    "id": "GBD027",
+    "event_type": "AUDIO_MUTED_BY_NR52_RESET",
+    "phase": "MVP-3",
+    "severity": "error",
+    "category": "Audio/APU",
+    "detection_condition": "An unintended NR52 reset or APU master disable silences audio.",
+    "required_metadata": [
+      "audio_register_writes",
+      "init_functions",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "frame",
+      "pc",
+      "value",
+      "function_id",
+      "source_line"
+    ],
+    "repair_target_candidates": [
+      "audio_init_guard",
+      "remove_runtime_nr52_reset"
+    ],
+    "safe_patch_hint": "Restrict NR52 resets to initialization; use individual channel controls at runtime.",
+    "fixtures": {
+      "red": "fixture_nr52_runtime_reset",
+      "green": "fixture_nr52_init_only",
+      "raw": "fixture_nr52_runtime_reset / fixture_nr52_init_only"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_nr52_runtime_reset as the failing test and fixture_nr52_init_only as the passing test."
+    ]
+  },
+  {
+    "id": "GBD028",
+    "event_type": "BANK_SWITCH_MISMATCH",
+    "phase": "MVP-1",
+    "severity": "error",
+    "category": "Bank/MBC",
+    "detection_condition": "The execution or read bank differs from KITAQGB bank metadata or the call target.",
+    "required_metadata": [
+      "bank_layout",
+      "functions",
+      "farcall_thunks",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "pc",
+      "expected_bank",
+      "actual_bank",
+      "function_id_guess",
+      "callsite_id"
+    ],
+    "repair_target_candidates": [
+      "farcall_fix",
+      "bank_set_guard",
+      "bank_layout_fix"
+    ],
+    "safe_patch_hint": "Correct the farcall thunk's bank-setting order, function placement, and bank restoration.",
+    "fixtures": {
+      "red": "fixture_bank_mismatch",
+      "green": "fixture_farcall_fixed",
+      "raw": "fixture_bank_mismatch / fixture_farcall_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_bank_mismatch as the failing test and fixture_farcall_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD029",
+    "event_type": "ROM_BANK_UNMAPPED_CALL",
+    "phase": "MVP-2",
+    "severity": "error",
+    "category": "Bank/MBC",
+    "detection_condition": "A call/jump target is unreachable from the current ROM bank or refers to a bank absent from placement metadata.",
+    "required_metadata": [
+      "bank_layout",
+      "functions",
+      "call_graph",
+      "farcall_thunks"
+    ],
+    "event_fields": [
+      "pc",
+      "target_addr",
+      "current_bank",
+      "required_bank",
+      "callsite_id"
+    ],
+    "repair_target_candidates": [
+      "farcall_required",
+      "move_function_to_fixed_bank",
+      "add_thunk"
+    ],
+    "safe_patch_hint": "Use farcalls for banked functions and place functions requiring a fixed bank appropriately.",
+    "fixtures": {
+      "red": "fixture_unmapped_call",
+      "green": "fixture_farcall_added",
+      "raw": "fixture_unmapped_call / fixture_farcall_added"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_unmapped_call as the failing test and fixture_farcall_added as the passing test."
+    ]
+  },
+  {
+    "id": "GBD030",
+    "event_type": "WRAMX_BANK_MISMATCH",
+    "phase": "MVP-2",
+    "severity": "error",
+    "category": "Memory/WRAMX",
+    "detection_condition": "A WRAMX data access uses a runtime bank different from the assumed bank.",
+    "required_metadata": [
+      "wram_layout",
+      "banked_data",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "pc",
+      "expected_wram_bank",
+      "actual_wram_bank",
+      "addr",
+      "data_id"
+    ],
+    "repair_target_candidates": [
+      "wram_bank_guard",
+      "move_to_fixed_wram",
+      "data_access_wrapper"
+    ],
+    "safe_patch_hint": "Guard WRAMX accesses with bank selection/restoration or move data to fixed WRAM.",
+    "fixtures": {
+      "red": "fixture_wramx_bad",
+      "green": "fixture_wramx_guarded",
+      "raw": "fixture_wramx_bad / fixture_wramx_guarded"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_wramx_bad as the failing test and fixture_wramx_guarded as the passing test."
+    ]
+  },
+  {
+    "id": "GBD031",
+    "event_type": "SRAM_ENABLE_LEAK",
+    "phase": "MVP-3",
+    "severity": "warn",
+    "category": "Memory/SRAM",
+    "detection_condition": "SRAM remains enabled longer than expected, risking accidental writes or save corruption.",
+    "required_metadata": [
+      "sram_operations",
+      "functions",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "frame",
+      "pc",
+      "sram_enabled_duration",
+      "function_id"
+    ],
+    "repair_target_candidates": [
+      "sram_disable_after_access",
+      "save_api_fix"
+    ],
+    "safe_patch_hint": "Disable SRAM immediately after the operation and manage its state through the save API.",
+    "fixtures": {
+      "red": "fixture_sram_leak",
+      "green": "fixture_sram_disabled",
+      "raw": "fixture_sram_leak / fixture_sram_disabled"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_sram_leak as the failing test and fixture_sram_disabled as the passing test."
+    ]
+  },
+  {
+    "id": "GBD032",
+    "event_type": "MBC_REGISTER_WRITE_RISK",
+    "phase": "MVP-3",
+    "severity": "warn",
+    "category": "Bank/MBC",
+    "detection_condition": "An MBC register write occurs outside the bank-switch API recorded in metadata.",
+    "required_metadata": [
+      "mbc_operations",
+      "bank_layout",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "pc",
+      "addr",
+      "value",
+      "function_id",
+      "api_known"
+    ],
+    "repair_target_candidates": [
+      "use_bank_api",
+      "guard_mbc_write"
+    ],
+    "safe_patch_hint": "Route handwritten MBC writes through the standard bank API.",
+    "fixtures": {
+      "red": "fixture_mbc_raw_write",
+      "green": "fixture_bank_api_write",
+      "raw": "fixture_mbc_raw_write / fixture_bank_api_write"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_mbc_raw_write as the failing test and fixture_bank_api_write as the passing test."
+    ]
+  },
+  {
+    "id": "GBD033",
+    "event_type": "FARCALL_BANK_THRASH",
+    "phase": "MVP-1",
+    "severity": "info",
+    "category": "Bank/Performance",
+    "detection_condition": "Excessive farcalls or bank switches consume CPU budget or delay audio updates.",
+    "required_metadata": [
+      "farcall_thunks",
+      "call_graph",
+      "functions",
+      "static_cost_estimates"
+    ],
+    "event_fields": [
+      "frame",
+      "switch_count",
+      "threshold",
+      "culprit_functions"
+    ],
+    "repair_target_candidates": [
+      "group_banked_calls",
+      "move_hot_function",
+      "cache_bank_state"
+    ],
+    "safe_patch_hint": "Place hot-path functions in the same bank and reduce farcalls.",
+    "fixtures": {
+      "red": "fixture_bank_thrash",
+      "green": "fixture_bank_grouped",
+      "raw": "fixture_bank_thrash / fixture_bank_grouped"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_bank_thrash as the failing test and fixture_bank_grouped as the passing test."
+    ]
+  },
+  {
+    "id": "GBD034",
+    "event_type": "ABI_SP_OR_REGISTER_MISMATCH",
+    "phase": "MVP-1",
+    "severity": "error",
+    "category": "ABI/Calling Convention",
+    "detection_condition": "SP or preserved registers at function entry/exit violate the ABI, indicating backend or assembly-helper corruption.",
+    "required_metadata": [
+      "abi_contracts",
+      "functions",
+      "intrinsics",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "function_id",
+      "pc_entry",
+      "pc_exit",
+      "sp_delta",
+      "clobbered_registers"
+    ],
+    "repair_target_candidates": [
+      "fix_asm_helper",
+      "update_abi_contract",
+      "preserve_register"
+    ],
+    "safe_patch_hint": "Restore the registers and SP required by the ABI in assembly helpers and intrinsics.",
+    "fixtures": {
+      "red": "fixture_abi_sp_bad",
+      "green": "fixture_abi_fixed",
+      "raw": "fixture_abi_sp_bad / fixture_abi_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_abi_sp_bad as the failing test and fixture_abi_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD035",
+    "event_type": "CALLING_CONVENTION_MISMATCH",
+    "phase": "MVP-2",
+    "severity": "error",
+    "category": "ABI/Calling Convention",
+    "detection_condition": "Call-site argument, return-value, or register assumptions differ from callee metadata.",
+    "required_metadata": [
+      "abi_contracts",
+      "call_graph",
+      "functions"
+    ],
+    "event_fields": [
+      "callsite_id",
+      "callee_id",
+      "expected_args",
+      "actual_args",
+      "return_kind"
+    ],
+    "repair_target_candidates": [
+      "fix_signature",
+      "regenerate_callsite",
+      "add_wrapper"
+    ],
+    "safe_patch_hint": "Align function declarations, wrappers, and calling-convention metadata.",
+    "fixtures": {
+      "red": "fixture_callconv_bad",
+      "green": "fixture_callconv_fixed",
+      "raw": "fixture_callconv_bad / fixture_callconv_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_callconv_bad as the failing test and fixture_callconv_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD036",
+    "event_type": "STACK_RESERVE_OVERFLOW_RISK",
+    "phase": "MVP-2",
+    "severity": "warn",
+    "category": "Stack/Memory",
+    "detection_condition": "Estimated stack usage or the measured minimum SP exceeds the reserve or approaches an unsafe range.",
+    "required_metadata": [
+      "stack_config",
+      "static_cost_estimates",
+      "functions"
+    ],
+    "event_fields": [
+      "frame",
+      "min_sp",
+      "reserve_top",
+      "margin_bytes",
+      "culprit_chain"
+    ],
+    "repair_target_candidates": [
+      "increase_stack_reserve",
+      "reduce_recursion",
+      "move_buffers"
+    ],
+    "safe_patch_hint": "Increase the stack reserve and reduce large local buffers or recursion.",
+    "fixtures": {
+      "red": "fixture_stack_risk",
+      "green": "fixture_stack_fixed",
+      "raw": "fixture_stack_risk / fixture_stack_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_stack_risk as the failing test and fixture_stack_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD037",
+    "event_type": "STACK_TOP_UNSAFE_BANK",
+    "phase": "MVP-3",
+    "severity": "error",
+    "category": "Stack/Memory",
+    "detection_condition": "The stack is in an unsafe region such as switchable WRAMX, or runtime placement differs from metadata.",
+    "required_metadata": [
+      "stack_config",
+      "wram_layout"
+    ],
+    "event_fields": [
+      "sp",
+      "stack_top",
+      "expected_bank",
+      "actual_bank"
+    ],
+    "repair_target_candidates": [
+      "stack_top_fixed_wram",
+      "stack_config_fix"
+    ],
+    "safe_patch_hint": "Place the stack in a safe fixed-WRAM region.",
+    "fixtures": {
+      "red": "fixture_stack_wramx",
+      "green": "fixture_stack_fixed_wram",
+      "raw": "fixture_stack_wramx / fixture_stack_fixed_wram"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_stack_wramx as the failing test and fixture_stack_fixed_wram as the passing test."
+    ]
+  },
+  {
+    "id": "GBD038",
+    "event_type": "HRAM_OVERUSE_OR_COLLISION",
+    "phase": "MVP-3",
+    "severity": "warn",
+    "category": "Memory/HRAM",
+    "detection_condition": "HRAM scratch, DMA routines, interrupt work, audio, or input storage overlaps or exceeds capacity.",
+    "required_metadata": [
+      "hram_layout",
+      "abi_contracts",
+      "interrupt_handlers"
+    ],
+    "event_fields": [
+      "addr",
+      "symbol_id",
+      "collision_with",
+      "function_id"
+    ],
+    "repair_target_candidates": [
+      "hram_layout_fix",
+      "move_to_wram",
+      "reduce_scratch"
+    ],
+    "safe_patch_hint": "Reorganize HRAM allocation and move conflicting scratch storage to WRAM.",
+    "fixtures": {
+      "red": "fixture_hram_collision",
+      "green": "fixture_hram_fixed",
+      "raw": "fixture_hram_collision / fixture_hram_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_hram_collision as the failing test and fixture_hram_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD039",
+    "event_type": "WRAM_SECTION_OVERLAP",
+    "phase": "MVP-3",
+    "severity": "error",
+    "category": "Memory/Layout",
+    "detection_condition": "WRAM/WRAMX sections, shadow OAM, audio buffers, or tile buffers overlap.",
+    "required_metadata": [
+      "wram_layout",
+      "asset_buffers",
+      "linker_sections"
+    ],
+    "event_fields": [
+      "section_a",
+      "section_b",
+      "range_a",
+      "range_b"
+    ],
+    "repair_target_candidates": [
+      "linker_layout_fix",
+      "buffer_size_fix"
+    ],
+    "safe_patch_hint": "Correct placement rules and buffer sizes.",
+    "fixtures": {
+      "red": "fixture_wram_overlap",
+      "green": "fixture_wram_layout_fixed",
+      "raw": "fixture_wram_overlap / fixture_wram_layout_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_wram_overlap as the failing test and fixture_wram_layout_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD040",
+    "event_type": "TILE_INDEX_OUT_OF_RANGE",
+    "phase": "MVP-3",
+    "severity": "error",
+    "category": "Asset/Tile",
+    "detection_condition": "A tile index exceeds the loaded tile count or VRAM bank range.",
+    "required_metadata": [
+      "asset_map",
+      "tile_sets",
+      "vram_operations"
+    ],
+    "event_fields": [
+      "frame",
+      "tile_index",
+      "max_tile",
+      "tileset_id",
+      "function_id"
+    ],
+    "repair_target_candidates": [
+      "asset_index_fix",
+      "load_tileset",
+      "banked_tile_fix"
+    ],
+    "safe_patch_hint": "Match tile indices to the loaded tileset range.",
+    "fixtures": {
+      "red": "fixture_tile_index_bad",
+      "green": "fixture_tile_index_fixed",
+      "raw": "fixture_tile_index_bad / fixture_tile_index_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_tile_index_bad as the failing test and fixture_tile_index_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD041",
+    "event_type": "MAP_WRITE_OUT_OF_RANGE",
+    "phase": "MVP-3",
+    "severity": "error",
+    "category": "Asset/Tilemap",
+    "detection_condition": "Tilemap coordinates or update ranges extend outside the BG/window map.",
+    "required_metadata": [
+      "tilemap_operations",
+      "display_configs"
+    ],
+    "event_fields": [
+      "x",
+      "y",
+      "width",
+      "height",
+      "map_base",
+      "function_id"
+    ],
+    "repair_target_candidates": [
+      "bounds_check",
+      "map_rect_clip"
+    ],
+    "safe_patch_hint": "Clip map updates and correct coordinate calculations.",
+    "fixtures": {
+      "red": "fixture_map_out_of_range",
+      "green": "fixture_map_clipped",
+      "raw": "fixture_map_out_of_range / fixture_map_clipped"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_map_out_of_range as the failing test and fixture_map_clipped as the passing test."
+    ]
+  },
+  {
+    "id": "GBD042",
+    "event_type": "PALETTE_INDEX_OUT_OF_RANGE",
+    "phase": "MVP-3",
+    "severity": "warn",
+    "category": "Asset/Palette",
+    "detection_condition": "A DMG/CGB palette index is out of range or conflicts with the CGB palette-bank assumption.",
+    "required_metadata": [
+      "palette_operations",
+      "display_configs"
+    ],
+    "event_fields": [
+      "palette_index",
+      "max_palette",
+      "cgb_mode",
+      "function_id"
+    ],
+    "repair_target_candidates": [
+      "palette_index_fix",
+      "cgb_palette_config"
+    ],
+    "safe_patch_hint": "Match palette indices to the active CGB/DMG mode.",
+    "fixtures": {
+      "red": "fixture_palette_bad",
+      "green": "fixture_palette_fixed",
+      "raw": "fixture_palette_bad / fixture_palette_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_palette_bad as the failing test and fixture_palette_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD043",
+    "event_type": "SPRITE_TILE_BANK_MISMATCH",
+    "phase": "MVP-3",
+    "severity": "warn",
+    "category": "Asset/Sprite",
+    "detection_condition": "A CGB sprite's tile-bank attribute differs from the bank containing its loaded tile.",
+    "required_metadata": [
+      "sprite_objects",
+      "tile_sets",
+      "vram_bank_layout"
+    ],
+    "event_fields": [
+      "sprite_id",
+      "tile_index",
+      "expected_vram_bank",
+      "actual_attr_bank"
+    ],
+    "repair_target_candidates": [
+      "sprite_attr_fix",
+      "load_tile_to_bank"
+    ],
+    "safe_patch_hint": "Align the sprite VRAM-bank attribute bit with tile loading.",
+    "fixtures": {
+      "red": "fixture_sprite_bank_bad",
+      "green": "fixture_sprite_bank_fixed",
+      "raw": "fixture_sprite_bank_bad / fixture_sprite_bank_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_sprite_bank_bad as the failing test and fixture_sprite_bank_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD044",
+    "event_type": "AUDIO_PATTERN_INDEX_OUT_OF_RANGE",
+    "phase": "MVP-3",
+    "severity": "error",
+    "category": "Asset/Audio",
+    "detection_condition": "A music/SFX pattern, instrument, or wave index is out of range or not loaded.",
+    "required_metadata": [
+      "audio_assets",
+      "audio_update_functions"
+    ],
+    "event_fields": [
+      "track_id",
+      "pattern_index",
+      "max_pattern",
+      "function_id"
+    ],
+    "repair_target_candidates": [
+      "audio_asset_fix",
+      "load_pattern_bank"
+    ],
+    "safe_patch_hint": "Align audio asset tables and referenced indices.",
+    "fixtures": {
+      "red": "fixture_audio_pattern_bad",
+      "green": "fixture_audio_pattern_fixed",
+      "raw": "fixture_audio_pattern_bad / fixture_audio_pattern_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_audio_pattern_bad as the failing test and fixture_audio_pattern_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD045",
+    "event_type": "LINK_CABLE_DESYNC",
+    "phase": "MVP-4",
+    "severity": "warn",
+    "category": "Link/Multi-instance",
+    "detection_condition": "Frame, cycle, or input-packet synchronization between KOKURA instances drifts beyond its threshold.",
+    "required_metadata": [
+      "link_functions",
+      "replay_config",
+      "input_poll_functions"
+    ],
+    "event_fields": [
+      "frame_a",
+      "frame_b",
+      "cycle_delta",
+      "packet_id",
+      "instance_id"
+    ],
+    "repair_target_candidates": [
+      "stable_link_tick",
+      "input_poll_phase_fix",
+      "delay_tolerance"
+    ],
+    "safe_patch_hint": "Use fixed ticks for link processing and stable polling/transmission timing.",
+    "fixtures": {
+      "red": "fixture_link_desync",
+      "green": "fixture_link_sync_fixed",
+      "raw": "fixture_link_desync / fixture_link_sync_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_link_desync as the failing test and fixture_link_sync_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD046",
+    "event_type": "REPLAY_NONDETERMINISM",
+    "phase": "MVP-4",
+    "severity": "error",
+    "category": "Replay/Determinism",
+    "detection_condition": "Replaying identical input produces different frame hashes, RAM hashes, or diagnostic sequences.",
+    "required_metadata": [
+      "replay_config",
+      "random_seed_sources",
+      "functions"
+    ],
+    "event_fields": [
+      "frame",
+      "expected_hash",
+      "actual_hash",
+      "divergence_pc"
+    ],
+    "repair_target_candidates": [
+      "fix_uninitialized_state",
+      "seed_control",
+      "deterministic_io"
+    ],
+    "safe_patch_hint": "Control uninitialized state, random seeds, and nondeterministic input.",
+    "fixtures": {
+      "red": "fixture_replay_nondet",
+      "green": "fixture_replay_det",
+      "raw": "fixture_replay_nondet / fixture_replay_det"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_replay_nondet as the failing test and fixture_replay_det as the passing test."
+    ]
+  },
+  {
+    "id": "GBD047",
+    "event_type": "UNINITIALIZED_RAM_DEPENDENCE",
+    "phase": "MVP-4",
+    "severity": "warn",
+    "category": "Determinism/Memory",
+    "detection_condition": "Branches, rendering, or audio depend on RAM values before initialization.",
+    "required_metadata": [
+      "wram_layout",
+      "init_functions",
+      "pc_ranges"
+    ],
+    "event_fields": [
+      "addr",
+      "first_read_pc",
+      "init_known",
+      "function_id"
+    ],
+    "repair_target_candidates": [
+      "init_memory",
+      "explicit_state_reset"
+    ],
+    "safe_patch_hint": "Explicitly initialize WRAM and state structures at startup.",
+    "fixtures": {
+      "red": "fixture_uninit_ram",
+      "green": "fixture_init_ram_fixed",
+      "raw": "fixture_uninit_ram / fixture_init_ram_fixed"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_uninit_ram as the failing test and fixture_init_ram_fixed as the passing test."
+    ]
+  },
+  {
+    "id": "GBD048",
+    "event_type": "STATIC_RUNTIME_COST_DIVERGENCE",
+    "phase": "MVP-4",
+    "severity": "info",
+    "category": "Compiler/Profiler",
+    "detection_condition": "KITAQGB static cycle/transfer estimates differ from KOKURA measurements beyond the threshold.",
+    "required_metadata": [
+      "static_cost_estimates",
+      "functions",
+      "profiler_summary"
+    ],
+    "event_fields": [
+      "function_id",
+      "static_cycles",
+      "runtime_cycles",
+      "ratio"
+    ],
+    "repair_target_candidates": [
+      "update_cost_model",
+      "inspect_codegen"
+    ],
+    "safe_patch_hint": "Update the cost model or code-generation metadata to improve estimates.",
+    "fixtures": {
+      "red": "fixture_cost_divergence",
+      "green": "fixture_cost_model_updated",
+      "raw": "fixture_cost_divergence / fixture_cost_model_updated"
+    },
+    "codex_tasks": [
+      "Add the minimum emulator observations needed for detection. Emit only violations or aggregated events to diagnostic_events.jsonl, not ordinary logs.",
+      "Use the metadata loader to map observations back to PC, bank, address, function, source, and op_id.",
+      "Emit diagnostic_type, severity, source_mapping, evidence_chain, repair_target, target_candidates, safe_patch_hint, confidence, and retest_condition in ai_diagnostics.json.",
+      "Add tests/fixtures/fixture_cost_divergence as the failing test and fixture_cost_model_updated as the passing test.",
+      "Create schema definitions and loaders.",
+      "Create the failing/passing MVP-1 fixtures first.",
+      "Implement the KITAQGB metadata exporter starting with the minimum fields.",
+      "Implement the KOKURA diagnostic-event emitter.",
+      "Generate `source_mapping` and `repair_target` in the translator.",
+      "Create CLI integration tests.",
+      "Add MVP-2 and later diagnostics one at a time.",
+      "`--diagnostic-pack all` enables all diagnostics; unimplemented diagnostics may be reported as `not_supported`."
+    ]
+  },
+  {
+    "id": "GBD049",
+    "event_type": "IRQ_UNSAFE_RUNTIME_STATE_ACCESS",
+    "phase": "MVP-4",
+    "severity": "error",
+    "category": "Interrupt/Runtime",
+    "detection_condition": "A GB interrupt handler calls a non-IRQ-safe runtime/C routine, switches ROM banks without an atomic restore contract, or reads/writes reserved HRAM/runtime state such as compiler critical-depth, bank mirrors, stack thunks, or scheduler scratch while mainline code can be interrupted.",
+    "required_metadata": [
+      "interrupt_vectors",
+      "callgraph",
+      "hram_layout",
+      "rom_bank_state",
+      "functions"
+    ],
+    "event_fields": [
+      "vector",
+      "pc",
+      "bank",
+      "callee",
+      "access_kind",
+      "addr",
+      "symbol",
+      "mainline_pc",
+      "expected_bank",
+      "observed_bank"
+    ],
+    "repair_target_candidates": [
+      "irq_inline_asm_driver",
+      "irq_safe_leaf_routine",
+      "defer_runtime_call_to_mainline",
+      "reserve_dedicated_hram_flag",
+      "atomic_bank_restore"
+    ],
+    "safe_patch_hint": "Keep VBlank/IRQ code as a leaf routine: preserve AF/BC/DE/HL, avoid C/runtime calls, avoid ROM bank switching unless the bank latch and mirror are restored atomically, and use only explicitly reserved HRAM bytes.",
+    "fixtures": {
+      "red": "fixture_irq_calls_banked_audio_or_writes_runtime_hram",
+      "green": "fixture_irq_leaf_asm_audio_reserved_hram",
+      "raw": "fixture_irq_calls_banked_audio_or_writes_runtime_hram / fixture_irq_leaf_asm_audio_reserved_hram"
+    },
+    "codex_tasks": [
+      "Add KOKURA emitter support for interrupt-callgraph and HRAM runtime-symbol access events.",
+      "Map interrupt vector, callee, bank, HRAM symbol, and observed bank mirror fields into ai_diagnostics.json.",
+      "Retest by running long mainline CPU loops while VBlank audio remains active and asserting no bank mirror mismatch or runtime HRAM write occurs."
+    ]
+  },
+  {
+    "id": "GBD050",
+    "event_type": "KOKURA_DEBUG_DIAGNOSTIC",
+    "phase": "MVP-4",
+    "severity": "info",
+    "category": "Emulator/Observation",
+    "detection_condition": "KOKURA emitted an informational runtime observation that does not map to a hardware or gameplay fault.",
+    "required_metadata": [
+      "runtime_report",
+      "events"
+    ],
+    "event_fields": [
+      "frame",
+      "message",
+      "summary_key",
+      "pc",
+      "bank"
+    ],
+    "repair_target_candidates": [
+      "review_emulator_observation",
+      "suppress_if_expected"
+    ],
+    "safe_patch_hint": "Treat as an observation unless it becomes a warning/error or appears with a specific runtime failure. Prefer a narrower KOKURA event_type if the observation becomes actionable.",
+    "fixtures": {
+      "red": "fixture_kokura_debug_observation",
+      "green": "fixture_kokura_debug_observation_acknowledged",
+      "raw": "fixture_kokura_debug_observation / fixture_kokura_debug_observation_acknowledged"
+    },
+    "codex_tasks": [
+      "Keep generic KOKURA debug observations classified as info so SARAKURA output does not fall back to unknown_rule.",
+      "If repeated observations identify a real defect, add a more specific KOKURA event_type and a dedicated SARAKURA catalog rule.",
+      "Use the message and summary_key fields to decide whether a project should suppress, ignore, or investigate the observation."
+    ]
+  }
+]

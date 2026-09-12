@@ -1,0 +1,2 @@
+{"schema":"kurosaki-diagnostic-event","schema_version":1,"event_id":"synthetic_event_0001","event_type":"FC_SUROM_HEADER_MISMATCH","severity":"error","frame":0,"function_id_guess":"synthetic_mapper_helper","summary_key":"synthetic_header_contract"}
+{"schema":"kurosaki-diagnostic-event","schema_version":1,"event_id":"synthetic_event_0002","event_type":"FC_MMC1_CONSECUTIVE_WRITE_IGNORED","severity":"warn","frame":1,"cpu_cycle":120,"function_id_guess":"synthetic_mapper_helper","summary_key":"synthetic_write_timing"}

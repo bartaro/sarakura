@@ -1,0 +1,20 @@
+{
+  "$id": "https://kitaq.dev/sarakura/schemas/sarakura_repro_bundle_manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "schema": {
+      "type": "string"
+    },
+    "schema_version": {
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema",
+    "schema_version"
+  ],
+  "title": "sarakura-repro-bundle-manifest",
+  "type": "object"
+}

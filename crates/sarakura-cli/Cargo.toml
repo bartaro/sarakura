@@ -1,0 +1,27 @@
+[package]
+name = "sarakura-cli"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "sarakura"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sarakura-core = { path = "../sarakura-core" }
+sarakura-gb = { path = "../sarakura-gb" }
+sarakura-fc = { path = "../sarakura-fc" }
+sarakura-report = { path = "../sarakura-report" }
+sarakura-schema = { path = "../sarakura-schema" }
+zip.workspace = true
+
+[dev-dependencies]
+assert_cmd.workspace = true
+predicates.workspace = true
+tempfile.workspace = true

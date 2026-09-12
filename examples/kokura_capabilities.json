@@ -1,0 +1,19 @@
+{
+  "schema": "sarakura-tool-capabilities",
+  "schema_version": 1,
+  "tool": "kokura",
+  "commands": ["run"],
+  "options": [
+    "--frames",
+    "--json",
+    "--emit-diagnostics",
+    "--diagnostics-jsonl",
+    "--png",
+    "--snapshot",
+    "--trace-jsonl",
+    "--repro-bundle",
+    "--break-on-diagnostic",
+    "--png-on-diagnostic",
+    "--snapshot-on-diagnostic"
+  ]
+}

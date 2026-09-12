@@ -1,0 +1,12 @@
+[package]
+name = "sarakura-report"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+serde_json.workspace = true
+sarakura-core = { path = "../sarakura-core" }
+zip.workspace = true

@@ -1,0 +1,10 @@
+[package]
+name = "sarakura-gb"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+sarakura-core = { path = "../sarakura-core" }

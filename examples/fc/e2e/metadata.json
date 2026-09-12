@@ -1,0 +1,55 @@
+{
+  "schema": "kitaqfc-ai-build-metadata",
+  "schema_version": 3,
+  "producer": "kitaqfc",
+  "target": "nes",
+  "build_id": "fc-fixture-build-001",
+  "rom": {
+    "path": "fixture.nes",
+    "mapper": "MMC3",
+    "mirroring": "horizontal"
+  },
+  "functions": [
+    {
+      "function_id": "func_draw_status",
+      "function_name": "draw_status",
+      "source_file": "src/main.c",
+      "source_line": 88
+    },
+    {
+      "function_id": "func_nmi",
+      "function_name": "nmi_handler",
+      "source_file": "src/nmi.c",
+      "source_line": 20
+    }
+  ],
+  "ppu_operations": [
+    {
+      "op_id": "ppuop_001",
+      "function_id": "func_draw_status",
+      "function_name": "draw_status",
+      "source_file": "src/main.c",
+      "source_line": 90
+    }
+  ],
+  "nmi_handlers": [
+    {
+      "op_id": "nmi_001",
+      "function_id": "func_nmi",
+      "function_name": "nmi_handler",
+      "source_file": "src/nmi.c",
+      "source_line": 20
+    }
+  ],
+  "pc_ranges": [
+    {
+      "function_id": "func_draw_status",
+      "function_name": "draw_status",
+      "source_file": "src/main.c",
+      "source_line": 88,
+      "prg_bank": 0,
+      "start": "0x8120",
+      "end": "0x8150"
+    }
+  ]
+}

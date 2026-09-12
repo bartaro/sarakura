@@ -1,0 +1,18 @@
+{
+  "schema": "kitaqfc-nes-build-metadata-v2",
+  "schema_version": 2,
+  "build_id": "synthetic_build_0001",
+  "target": "nes",
+  "rom": {
+    "path": "synthetic_output_0001.nes"
+  },
+  "board_profile": "surom512",
+  "functions": [
+    {
+      "function_id": "synthetic_mapper_helper",
+      "function_name": "synthetic_mapper_helper",
+      "source_file": "synthetic_source_0001.c",
+      "source_line": 12
+    }
+  ]
+}

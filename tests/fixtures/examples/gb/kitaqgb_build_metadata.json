@@ -1,0 +1,56 @@
+{
+  "schema": "kitaqgb-ai-build-metadata",
+  "schema_version": 3,
+  "producer": "kitaqgb",
+  "target": "gbc",
+  "build_id": "gb-fixture-build-001",
+  "rom": {
+    "path": "fixture.gb",
+    "title": "FIXTURE",
+    "mapper": "MBC5",
+    "cgb": true
+  },
+  "functions": [
+    {
+      "function_id": "func_draw_status",
+      "function_name": "draw_status",
+      "source_file": "src/main.c",
+      "source_line": 120
+    },
+    {
+      "function_id": "func_audio_tick",
+      "function_name": "audio_tick",
+      "source_file": "src/audio.c",
+      "source_line": 45
+    }
+  ],
+  "vram_operations": [
+    {
+      "op_id": "vramop_001",
+      "function_id": "func_draw_status",
+      "function_name": "draw_status",
+      "source_file": "src/main.c",
+      "source_line": 123
+    }
+  ],
+  "audio_update_functions": [
+    {
+      "op_id": "audioop_001",
+      "function_id": "func_audio_tick",
+      "function_name": "audio_tick",
+      "source_file": "src/audio.c",
+      "source_line": 45
+    }
+  ],
+  "pc_ranges": [
+    {
+      "function_id": "func_draw_status",
+      "function_name": "draw_status",
+      "source_file": "src/main.c",
+      "source_line": 120,
+      "bank": 1,
+      "start": "0x4150",
+      "end": "0x4180"
+    }
+  ]
+}

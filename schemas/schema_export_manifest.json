@@ -1,0 +1,19 @@
+{
+  "schema": "sarakura-schema-export-manifest",
+  "schema_version": 1,
+  "schemas": [
+    "schemas\\sarakura_ai_diagnostics.schema.json",
+    "schemas\\sarakura_diagnostic_summary.schema.json",
+    "schemas\\sarakura_retest_plan.schema.json",
+    "schemas\\sarakura_repair_plan.schema.json",
+    "schemas\\sarakura_automation_plan.schema.json",
+    "schemas\\sarakura_baseline_delta.schema.json",
+    "schemas\\sarakura_ci_summary.schema.json",
+    "schemas\\sarakura_catalog_coverage.schema.json",
+    "schemas\\sarakura_diagnostic_pack_plan.schema.json",
+    "schemas\\sarakura_repro_bundle_manifest.schema.json",
+    "schemas\\sarakura_diagnostic_event.schema.json",
+    "schemas\\sarakura_build_metadata.schema.json",
+    "schemas\\sarakura_normalized_events.schema.json"
+  ]
+}
