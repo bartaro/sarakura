@@ -13,7 +13,7 @@ resolver = "2"
 edition = "2021"
 version = "1.0.0"
 license = "MIT"
-authors = ["KITAQ Project"]
+authors = ["DAISUKE OBA"]
 rust-version = "1.75"
 
 [workspace.dependencies]
