@@ -1,12 +1,7 @@
-# SARAKURA v0.9.1 Changelog
+# SARAKURA v0.9.1 baseline diagnostics
 
-## Fixed
-
-- Fixed `sarakura-core/src/baseline.rs` build error caused by `diagnostic_map()` inferring `BTreeMap<String, AiDiagnostic>` instead of `BTreeMap<String, &AiDiagnostic>`.
-- Added an explicit map type annotation and dereferenced the existing representative when comparing candidates.
-
-## Compatibility
-
-- No schema changes.
-- No CLI behavior changes.
-- v0.9 `baseline-delta` feature remains unchanged.
+`baseline-delta` compares diagnostic sets against a baseline. In
+`sarakura-core/src/baseline.rs`, `diagnostic_map()` builds a
+`BTreeMap<String, &AiDiagnostic>`: each entry borrows its diagnostic rather than
+owning a copy. Candidate selection dereferences the stored representative
+when comparing diagnostics.
