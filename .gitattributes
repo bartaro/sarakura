@@ -1,0 +1,2 @@
+# Keep bundled license documents out of GitHub language statistics.
+licenses/** linguist-documentation
