@@ -1,6 +1,9 @@
 use crate::model::{DiagnosticPack, DiagnosticPackPlan, DiagnosticRule, Platform};
 use std::collections::BTreeMap;
 
+// Group catalog IDs by the original phase and the first category component.
+// Sorted map keys make groups stable; ID order within each group follows the
+// catalog. Recommendations are a selected subset, not every possible group.
 pub fn build_pack_plan(platform: Platform, catalog: &[DiagnosticRule]) -> DiagnosticPackPlan {
     let mut phases: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut domains: BTreeMap<String, Vec<String>> = BTreeMap::new();
@@ -27,6 +30,9 @@ pub fn build_pack_plan(platform: Platform, catalog: &[DiagnosticRule]) -> Diagno
     }
 }
 
+// Accept any requested pack match; an empty filter or all accepts everything.
+// Core requires MVP-1. Other names match the normalized phase, top-level domain
+// or complete category, without looking up the recommended-pack list.
 pub fn diagnostic_matches_pack(
     phase: Option<&str>,
     category: Option<&str>,
@@ -64,6 +70,9 @@ pub fn diagnostic_matches_pack(
     })
 }
 
+// Offer core only for the exact MVP-1 phase key, then known domain groups in
+// the fixed order below. Group lookup is case-sensitive even though filtering
+// normalizes requested names; rule IDs remain in their original catalog order.
 fn build_recommended_packs(
     phases: &BTreeMap<String, Vec<String>>,
     domains: &BTreeMap<String, Vec<String>>,
@@ -90,10 +99,14 @@ fn build_recommended_packs(
     packs
 }
 
+// Use the first slash-separated category component, including an empty one.
+// No trimming or case normalization is performed when building group keys.
 fn top_level_domain(category: &str) -> &str {
     category.split('/').next().unwrap_or(category)
 }
 
+// Lowercase ASCII and remove punctuation, whitespace and non-ASCII characters
+// so phase/category spellings can be compared through one compact filter key.
 fn normalize_pack_name(value: &str) -> String {
     value
         .to_ascii_lowercase()
@@ -107,6 +120,7 @@ mod tests {
     use super::*;
     use crate::model::{DiagnosticRule, FixturePair};
 
+    // Build a catalog fixture with configurable grouping fields and no repair metadata.
     fn rule(id: &str, phase: &str, category: &str) -> DiagnosticRule {
         DiagnosticRule {
             id: id.to_string(),
@@ -125,6 +139,7 @@ mod tests {
     }
 
     #[test]
+    // Check phase and domain membership plus the presence of the recommended core pack.
     fn builds_phase_and_domain_packs() {
         let plan = build_pack_plan(
             Platform::Gb,
@@ -139,6 +154,7 @@ mod tests {
     }
 
     #[test]
+    // Verify core and audio selection, and rejection of an unrelated PPU filter.
     fn matches_core_and_domain_packs() {
         assert!(diagnostic_matches_pack(
             Some("MVP-1"),

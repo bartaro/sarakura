@@ -28,6 +28,9 @@ pub struct CiSummary {
     pub message: String,
 }
 
+// Apply the selected severity gate to already-computed summary counts and return
+// a structured status/exit code. A passing gate only means this policy was satisfied;
+// it is not independent proof of ROM correctness.
 pub fn build_ci_summary(doc: &AiDiagnosticsDocument, fail_on: &str) -> CiSummary {
     let fail_on = normalize_fail_on(fail_on);
     let should_fail = match fail_on.as_str() {
@@ -79,6 +82,7 @@ pub fn build_ci_summary(doc: &AiDiagnosticsDocument, fail_on: &str) -> CiSummary
     }
 }
 
+// Normalize gate aliases; unrecognized input conservatively uses the error threshold.
 fn normalize_fail_on(value: &str) -> String {
     match value.to_ascii_lowercase().as_str() {
         "never" => "never".to_string(),
@@ -89,6 +93,8 @@ fn normalize_fail_on(value: &str) -> String {
     }
 }
 
+// Rank categories by descending count, break ties by key for deterministic output,
+// and keep at most limit entries.
 fn top_items(map: &BTreeMap<String, usize>, limit: usize) -> Vec<CountItem> {
     let mut items: Vec<_> = map
         .iter()
@@ -107,6 +113,7 @@ mod tests {
     use super::*;
     use crate::model::{DiagnosticSummary, RomSummary, RunSummary};
 
+    // Build a minimal summary-only fixture with consistent severity totals.
     fn sample_doc(errors: usize, warnings: usize, infos: usize) -> AiDiagnosticsDocument {
         AiDiagnosticsDocument {
             schema: "sarakura-gb-ai-diagnostics".to_string(),
@@ -143,6 +150,7 @@ mod tests {
     }
 
     #[test]
+    // Verify an error causes a failing status and nonzero CI exit code.
     fn ci_summary_fails_on_error() {
         let doc = sample_doc(1, 0, 0);
         let summary = build_ci_summary(&doc, "error");
@@ -151,6 +159,7 @@ mod tests {
     }
 
     #[test]
+    // Verify warnings alone do not fail a gate configured to reject only errors.
     fn ci_summary_passes_when_policy_allows() {
         let doc = sample_doc(0, 1, 0);
         let summary = build_ci_summary(&doc, "error");

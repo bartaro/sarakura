@@ -4,6 +4,8 @@ use crate::model::{
 };
 use std::collections::BTreeSet;
 
+// Build a command proposal using the shared default capability table. No tool
+// is probed and no command is executed by this convenience entry point.
 pub fn build_automation_plan(
     doc: &AiDiagnosticsDocument,
     tool_hint: Option<&str>,
@@ -11,6 +13,9 @@ pub fn build_automation_plan(
     build_automation_plan_with_capabilities(doc, tool_hint, None)
 }
 
+// Generate reproduce/inspect pairs in diagnostic order, then one retest per
+// sorted unique event type. Use supplied capabilities verbatim or assumed
+// defaults; they are not verified against an installed executable.
 pub fn build_automation_plan_with_capabilities(
     doc: &AiDiagnosticsDocument,
     tool_hint: Option<&str>,
@@ -51,6 +56,8 @@ pub fn build_automation_plan_with_capabilities(
 
     let mut summary = AutomationPlanSummary::default();
     summary.total_commands = commands.len();
+    // This summary field counts source diagnostics, not the two command records
+    // generated for each diagnostic; stage totals count actual command records.
     summary.diagnostic_commands = doc.diagnostics.len();
     for cmd in &commands {
         match cmd.stage.as_str() {
@@ -74,6 +81,9 @@ pub fn build_automation_plan_with_capabilities(
     }
 }
 
+// Render English guidance and the proposed CLI strings in Bash-marked fences.
+// This does not select a host shell, execute commands or validate the embedded
+// paths/options; labels and command strings are interpolated as provided.
 pub fn render_automation_plan_markdown(plan: &AutomationPlan) -> String {
     let mut out = String::new();
     out.push_str("# SARAKURA automation plan\n\n");
@@ -114,6 +124,9 @@ pub fn render_automation_plan_markdown(plan: &AutomationPlan) -> String {
     out
 }
 
+// Propose a diagnostic-triggered run using this diagnostic's retest budget.
+// Output fields describe requested artifacts even when capability filtering
+// omits the corresponding CLI option; the paths are not created here.
 fn build_reproduce_command(
     tool: &str,
     capabilities: Option<&ToolCapabilities>,
@@ -158,6 +171,9 @@ fn build_reproduce_command(
     }
 }
 
+// Prefer auto-run-until when advertised, targeting PC before diagnostic type.
+// Otherwise use a run breakpoint when PC is known or the capability-filtered
+// run builder. Direct formatting branches do not quote fields or filter options.
 fn build_inspect_command(
     tool: &str,
     capabilities: Option<&ToolCapabilities>,
@@ -218,6 +234,10 @@ fn build_inspect_command(
     }
 }
 
+// Propose a rerun and subsequent SARAKURA analysis for one event type. This
+// uses the original run frame budget, not the largest per-diagnostic budget.
+// The metadata placeholder and shared event-file path must be supplied/checked
+// by the consumer; an error-only gate is not proof of absence of every severity.
 fn build_retest_command(
     tool: &str,
     capabilities: Option<&ToolCapabilities>,
@@ -262,6 +282,9 @@ fn build_retest_command(
     }
 }
 
+// Assemble a run proposal: run and --frames are unconditional; optional flags
+// are emitted only when advertised. All runs share one diagnostics output path.
+// Snapshot-on-diagnostic uses a fixed directory instead of the requested file.
 fn build_run_cli(
     tool: &str,
     capabilities: Option<&ToolCapabilities>,
@@ -316,18 +339,24 @@ fn build_run_cli(
     parts.join(" ")
 }
 
+// Match advertised command names exactly. Missing capability information is
+// treated as permissive; this does not test whether the executable supports it.
 fn supports_command(capabilities: Option<&ToolCapabilities>, command: &str) -> bool {
     capabilities
         .map(|cap| cap.commands.iter().any(|value| value == command))
         .unwrap_or(true)
 }
 
+// Match advertised option names exactly; absent capability information permits
+// all options, without probing an executable or interpreting version numbers.
 fn supports_option(capabilities: Option<&ToolCapabilities>, option: &str) -> bool {
     capabilities
         .map(|cap| cap.options.iter().any(|value| value == option))
         .unwrap_or(true)
 }
 
+// Return the same assumed CLI feature set for any tool name. This is a static
+// fallback table, not the result of querying the named emulator.
 fn default_capabilities(tool: &str) -> ToolCapabilities {
     ToolCapabilities {
         schema: Some("sarakura-tool-capabilities".to_string()),
@@ -354,6 +383,9 @@ fn default_capabilities(tool: &str) -> ToolCapabilities {
     }
 }
 
+// Apply the legacy display quoting used by generated command proposals. It is
+// not general shell escaping: angle brackets and empty strings remain bare,
+// and double quotes do not protect shell expansion in every supported host.
 fn shell_arg(value: &str) -> String {
     if value.chars().all(|c| {
         c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '.' | '/' | '\\' | ':' | '<' | '>')
@@ -364,6 +396,8 @@ fn shell_arg(value: &str) -> String {
     }
 }
 
+// Deduplicate diagnostic type strings exactly and return them in sorted order
+// so retest command IDs are stable for the same set of types.
 fn unique_event_types(doc: &AiDiagnosticsDocument) -> Vec<String> {
     let mut set = BTreeSet::new();
     for diag in &doc.diagnostics {
@@ -372,6 +406,9 @@ fn unique_event_types(doc: &AiDiagnosticsDocument) -> Vec<String> {
     set.into_iter().collect()
 }
 
+// Lowercase a supplied tool hint. Auto or an empty hint selects kurosaki only
+// for the exact platform fc; other platforms select kokura. Unknown hints pass
+// through lowercased, without path validation or whitespace trimming.
 fn resolve_tool(platform: &str, tool_hint: Option<&str>) -> String {
     match tool_hint.unwrap_or("auto").to_ascii_lowercase().as_str() {
         "kokura" => "kokura".to_string(),
@@ -384,6 +421,8 @@ fn resolve_tool(platform: &str, tool_hint: Option<&str>) -> String {
     }
 }
 
+// Keep ASCII letters/digits, underscore and hyphen for an output-name suffix;
+// replace each other character with underscore. Different inputs can collide.
 fn sanitize(s: &str) -> String {
     s.chars()
         .map(|c| {
@@ -404,6 +443,8 @@ mod tests {
         SourceMapping,
     };
 
+    // Construct one synthetic mapped GB diagnostic for plan-structure tests;
+    // these metadata fields are fixtures, not a live emulator observation.
     fn doc() -> AiDiagnosticsDocument {
         AiDiagnosticsDocument {
             schema: "sarakura-gb-ai-diagnostics".to_string(),
@@ -478,6 +519,8 @@ mod tests {
     }
 
     #[test]
+    // Check automatic GB tool selection and the proposed reproduction flag.
+    // The test inspects generated strings and does not run the emulator.
     fn builds_kokura_plan_for_gb() {
         let plan = build_automation_plan(&doc(), None);
         assert_eq!(plan.tool, "kokura");
@@ -487,6 +530,7 @@ mod tests {
     }
 
     #[test]
+    // Check that an explicit tool hint appears in English Markdown command output.
     fn markdown_contains_commands() {
         let plan = build_automation_plan(&doc(), Some("kurosaki"));
         let md = render_automation_plan_markdown(&plan);
@@ -495,6 +539,8 @@ mod tests {
     }
 
     #[test]
+    // Check omission of unsupported diagnostic-break and snapshot flags from the
+    // reproduction proposal; this does not validate every inspection branch.
     fn capabilities_filter_unsupported_options() {
         let capabilities = ToolCapabilities {
             tool: "kokura".to_string(),

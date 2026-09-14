@@ -4,12 +4,14 @@ use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+// Supported analysis families, serialized as lowercase gb and fc identifiers.
 pub enum Platform {
     Gb,
     Fc,
 }
 
 impl Platform {
+    // Return the same stable lowercase platform name used in serialized documents.
     pub fn as_str(self) -> &'static str {
         match self {
             Platform::Gb => "gb",
@@ -19,6 +21,8 @@ impl Platform {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Catalog data: identity, detection prose, expected fields and suggested repair
+// targets. Loading this structure does not execute the detection condition.
 pub struct DiagnosticRule {
     pub id: String,
     pub event_type: String,
@@ -35,6 +39,8 @@ pub struct DiagnosticRule {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Optional references to failing, passing and raw fixtures; paths are metadata
+// and are not opened or validated during deserialization.
 pub struct FixturePair {
     pub red: Option<String>,
     pub green: Option<String>,
@@ -42,6 +48,9 @@ pub struct FixturePair {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// One supplied observation or aggregated record. Timing/source fields are
+// optional, unknown JSON fields are retained in extra, and guesses are not
+// confirmed source identities. event_type remains the required discriminator.
 pub struct DiagnosticEvent {
     pub schema: Option<String>,
     pub schema_version: Option<u32>,
@@ -72,6 +81,9 @@ pub struct DiagnosticEvent {
 }
 
 impl DiagnosticEvent {
+    // Prefer an explicit summary_key verbatim, including an empty key. Otherwise
+    // combine type, textual PC/address and both bank fields; frame, severity and
+    // source guesses are omitted. Values/separators are not canonicalized or escaped.
     pub fn stable_key(&self) -> String {
         if let Some(key) = &self.summary_key {
             return key.clone();
@@ -86,26 +98,32 @@ impl DiagnosticEvent {
         )
     }
 
+    // Default an absent count to one while preserving an explicit zero.
     pub fn normalized_count(&self) -> u64 {
         self.count.unwrap_or(1)
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Generic build JSON object with unknown top-level fields preserved. Accessors
+// read only their documented aliases; the type imposes no schema validation.
 pub struct BuildMetadata {
     #[serde(flatten)]
     pub raw: BTreeMap<String, Value>,
 }
 
 impl BuildMetadata {
+    // Read a string-valued top-level schema field without validating its contents.
     pub fn schema(&self) -> Option<&str> {
         self.raw.get("schema").and_then(Value::as_str)
     }
 
+    // Read the optional string-valued build label; no uniqueness check is performed.
     pub fn build_id(&self) -> Option<&str> {
         self.raw.get("build_id").and_then(Value::as_str)
     }
 
+    // Read rom.path only when it is a string; do not access the referenced file.
     pub fn rom_path(&self) -> Option<&str> {
         self.raw
             .get("rom")
@@ -113,6 +131,8 @@ impl BuildMetadata {
             .and_then(Value::as_str)
     }
 
+    // Prefer a present rom.hash field over rom.sha256, then require a string.
+    // A wrong-type hash suppresses the sha256 fallback; no digest is recomputed.
     pub fn rom_hash(&self) -> Option<&str> {
         self.raw
             .get("rom")
@@ -120,12 +140,16 @@ impl BuildMetadata {
             .and_then(Value::as_str)
     }
 
+    // Read the top-level string target, without falling back to a nested ROM target.
     pub fn target(&self) -> Option<&str> {
         self.raw.get("target").and_then(Value::as_str)
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Policy for already-collected input: frame metadata, output limit and filters.
+// frames does not request emulator execution. Zero summary_limit means unlimited;
+// allow_project_labels controls the analyzer's selected-field redaction.
 pub struct AnalyzeOptions {
     pub platform: Platform,
     pub frames: u64,
@@ -139,6 +163,8 @@ pub struct AnalyzeOptions {
 }
 
 impl Default for AnalyzeOptions {
+    // Default to GB, a reported 300-frame budget, at most 200 diagnostics, no
+    // filters and selected project labels redacted.
     fn default() -> Self {
         Self {
             platform: Platform::Gb,
@@ -154,6 +180,8 @@ impl Default for AnalyzeOptions {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Versioned analysis output joining identity, run configuration, retained-record
+// summary and diagnostics. It is a report, not a restorable machine snapshot.
 pub struct AiDiagnosticsDocument {
     pub schema: String,
     pub schema_version: u32,
@@ -167,6 +195,8 @@ pub struct AiDiagnosticsDocument {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Record input/aggregation counts before diagnostic filtering, together with
+// the requested limit and filters so output reductions can be interpreted.
 pub struct RunSummary {
     pub frames_requested: u64,
     pub diagnostic_summary_limit: usize,
@@ -181,6 +211,8 @@ pub struct RunSummary {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Optional input ROM identity copied from metadata; redaction may replace
+// path and remove hash, and this structure does not verify file contents.
 pub struct RomSummary {
     pub path: Option<String>,
     pub target: Option<String>,
@@ -188,6 +220,8 @@ pub struct RomSummary {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Counts of retained diagnostic records after filtering/limiting. Category
+// counts are not summed event occurrences; frames_analyzed is configured metadata.
 pub struct DiagnosticSummary {
     pub frames_analyzed: u64,
     pub diagnostics_total: usize,
@@ -202,6 +236,8 @@ pub struct DiagnosticSummary {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// One enriched diagnostic with heuristic source/repair candidates, occurrence
+// count and retest requirements. Generated IDs depend on final output order.
 pub struct AiDiagnostic {
     pub diagnostic_id: String,
     pub catalog_id: Option<String>,
@@ -225,6 +261,8 @@ pub struct AiDiagnostic {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Possibly partial source correlation plus the heuristic mapping score.
+// A present mapping need not contain a file or line and does not prove causation.
 pub struct SourceMapping {
     pub source_file: Option<String>,
     pub source_line: Option<u64>,
@@ -239,6 +277,8 @@ pub struct SourceMapping {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Typed description of one evidence link. Absent optional fields are omitted
+// from JSON; references/notes are not independent validation of their targets.
 pub struct EvidenceItem {
     pub kind: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -262,6 +302,8 @@ pub struct EvidenceItem {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Selected investigation target and available source labels, with a textual
+// reason. This describes where to inspect, not an automatically applied patch.
 pub struct RepairTarget {
     pub target_type: String,
     pub primary_file: Option<String>,
@@ -273,6 +315,8 @@ pub struct RepairTarget {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Ordered alternative repair category with supporting reference labels.
+// Rank comes from the catalog candidate order, not an executed repair trial.
 pub struct TargetCandidate {
     pub target_type: String,
     pub rank: u32,
@@ -281,6 +325,8 @@ pub struct TargetCandidate {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Requested frame budget, disappearance/nonregression checks and expected
+// artifacts for a future rerun; these are requirements, not pass results.
 pub struct RetestCondition {
     pub frames: u64,
     pub expect_absent: Vec<String>,
@@ -289,12 +335,15 @@ pub struct RetestCondition {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Optional earliest/latest observed frames; empty input leaves both absent.
 pub struct FrameRange {
     pub first: Option<u64>,
     pub last: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Separate loaded-record counts from effective occurrences and track available
+// timing/evidence fields. Reference counts do not establish file validity.
 pub struct EventInspectionSummary {
     pub events_loaded: usize,
     pub effective_count: u64,
@@ -307,6 +356,7 @@ pub struct EventInspectionSummary {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Metadata identity and top-level array lengths, without nested content checks.
 pub struct MetadataInspectionSummary {
     pub schema: Option<String>,
     pub build_id: Option<String>,
@@ -317,6 +367,8 @@ pub struct MetadataInspectionSummary {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Combined rerun requirements and per-diagnostic context. Generating the plan
+// does not run an emulator or evaluate the expected outcomes.
 pub struct RetestPlan {
     pub schema: String,
     pub schema_version: u32,
@@ -330,6 +382,7 @@ pub struct RetestPlan {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Per-diagnostic subset of the retest context retained alongside aggregate requirements.
 pub struct RetestDiagnostic {
     pub diagnostic_id: String,
     pub diagnostic_type: String,
@@ -341,6 +394,8 @@ pub struct RetestDiagnostic {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Catalog/event-type overlap and unknown-type suggestions. Coverage records
+// observed names, not successful detector validation or overall game correctness.
 pub struct CatalogCoverageReport {
     pub schema: String,
     pub schema_version: u32,
@@ -355,6 +410,8 @@ pub struct CatalogCoverageReport {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Lexical matches for an unknown event type, with aligned candidate ID/type
+// lists. Suggestions are not automatic aliases or semantic equivalence claims.
 pub struct UnknownEventSuggestion {
     pub event_type: String,
     pub candidate_catalog_ids: Vec<String>,
@@ -363,6 +420,8 @@ pub struct UnknownEventSuggestion {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// One catalog row with the occurrence count of its event type. Multiple rows
+// sharing a type can all be observed by the same events.
 pub struct CatalogCoverageRow {
     pub id: String,
     pub event_type: String,
@@ -374,6 +433,7 @@ pub struct CatalogCoverageRow {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Phase/domain group membership and a selected list of recommended diagnostic packs.
 pub struct DiagnosticPackPlan {
     pub schema: String,
     pub schema_version: u32,
@@ -384,6 +444,7 @@ pub struct DiagnosticPackPlan {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Named group description and catalog rule IDs; membership preserves catalog order.
 pub struct DiagnosticPack {
     pub name: String,
     pub description: String,
@@ -391,6 +452,7 @@ pub struct DiagnosticPack {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Versioned sequence of grouped repair proposals derived from a diagnostics document.
 pub struct RepairPlan {
     pub schema: String,
     pub schema_version: u32,
@@ -402,6 +464,7 @@ pub struct RepairPlan {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Counts of grouped steps by severity/target, plus the number of input diagnostics covered.
 pub struct RepairPlanSummary {
     pub total_steps: usize,
     pub error_steps: usize,
@@ -412,6 +475,8 @@ pub struct RepairPlanSummary {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// One source/target group with merged evidence and retest requirements.
+// Lower numeric priority is more urgent; step_id is assigned after ranking.
 pub struct RepairPlanStep {
     pub step_id: String,
     pub priority: u32,
@@ -433,6 +498,8 @@ pub struct RepairPlanStep {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Proposed tool commands and the capability assumptions used to compose them.
+// Capabilities and output names are descriptive, not executable discovery results.
 pub struct AutomationPlan {
     pub schema: String,
     pub schema_version: u32,
@@ -447,6 +514,8 @@ pub struct AutomationPlan {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Count command stages separately from source diagnostics. diagnostic_commands
+// counts diagnostics even though each produces reproduce and inspect commands.
 pub struct AutomationPlanSummary {
     pub total_commands: usize,
     pub reproduce_commands: usize,
@@ -456,6 +525,9 @@ pub struct AutomationPlanSummary {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// A proposed CLI string with diagnostic context and requested output paths.
+// Some paths may not appear in cli after capability filtering; no execution
+// or shell-portable escaping guarantee is represented by this structure.
 pub struct AutomationCommand {
     pub command_id: String,
     pub stage: String,
@@ -475,6 +547,8 @@ pub struct AutomationCommand {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Supplied or assumed exact CLI command/option names. Omitted vectors default
+// to empty; this data does not probe an executable or verify a tool version.
 pub struct ToolCapabilities {
     pub schema: Option<String>,
     pub schema_version: Option<u32>,
@@ -488,6 +562,8 @@ pub struct ToolCapabilities {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Archive listing and optional parsed manifest with inspection warnings.
+// Presence of a manifest does not prove a runnable or complete reproduction.
 pub struct ReproBundleInspection {
     pub schema: String,
     pub schema_version: u32,
@@ -499,6 +575,7 @@ pub struct ReproBundleInspection {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Archive member name and declared size for inspection; no extracted contents are stored.
 pub struct ReproBundleEntry {
     pub name: String,
     pub size: u64,

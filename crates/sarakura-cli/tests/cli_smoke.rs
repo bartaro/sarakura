@@ -4,6 +4,8 @@ use std::io::Read;
 use std::path::PathBuf;
 use tempfile::TempDir;
 
+// Locate bundled fixtures relative to this crate, independent of the test
+// process working directory.
 fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -14,6 +16,9 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
+// Run the real CLI for one synthetic event per built-in rule plus an unknown
+// event. Check output and ZIP text for the selected Japanese/CJK ranges and
+// the English HTML language tag; this is not a natural-language quality test.
 fn all_builtin_diagnostics_generate_english_reports() {
     let root = workspace_root();
     for platform in ["gb", "fc"] {
@@ -99,6 +104,7 @@ fn all_builtin_diagnostics_generate_english_reports() {
 }
 
 #[test]
+// Check that an absent validation input fails with a file-read diagnostic.
 fn validate_rejects_missing_file() {
     let mut cmd = Command::cargo_bin("sarakura").unwrap();
     cmd.args(["validate", "does-not-exist.json"])
@@ -108,6 +114,7 @@ fn validate_rejects_missing_file() {
 }
 
 #[test]
+// Exercise CLI schema export and check two required files plus its status line.
 fn schema_export_writes_v1_contract_files() {
     let out = TempDir::new().unwrap();
     Command::cargo_bin("sarakura")
@@ -130,6 +137,8 @@ fn schema_export_writes_v1_contract_files() {
 }
 
 #[test]
+// Exercise GB report generation, default identity redaction and omission of
+// original inputs from the ZIP; then validate and inspect the emitted artifacts.
 fn gb_analyze_writes_expected_files() {
     let root = workspace_root();
     let out = TempDir::new().unwrap();
@@ -197,6 +206,8 @@ fn gb_analyze_writes_expected_files() {
 }
 
 #[test]
+// Check that FC analysis still writes diagnostics when both optional HTML
+// and ZIP outputs are disabled.
 fn fc_analyze_supports_no_report_flags() {
     let root = workspace_root();
     let out = TempDir::new().unwrap();
@@ -220,6 +231,7 @@ fn fc_analyze_supports_no_report_flags() {
 }
 
 #[test]
+// Check that the GB catalog command exposes a known rule in its default table.
 fn catalog_command_lists_gb_rules() {
     let mut cmd = Command::cargo_bin("sarakura").unwrap();
     cmd.args(["catalog", "gb"])
@@ -229,6 +241,8 @@ fn catalog_command_lists_gb_rules() {
 }
 
 #[test]
+// Smoke-test parsing and execution of phase, severity and fail-on options.
+// This assertion checks output presence, not the exact retained diagnostic set.
 fn gb_analyze_supports_filters() {
     let root = workspace_root();
     let out = TempDir::new().unwrap();
@@ -254,6 +268,7 @@ fn gb_analyze_supports_filters() {
 }
 
 #[test]
+// Exercise event inspection and check its compact count output.
 fn inspect_events_reports_counts() {
     let root = workspace_root();
     let mut cmd = Command::cargo_bin("sarakura").unwrap();
@@ -266,6 +281,7 @@ fn inspect_events_reports_counts() {
 }
 
 #[test]
+// Check that ordinary analysis emits a retest-plan file alongside diagnostics.
 fn analyze_writes_retest_plan() {
     let root = workspace_root();
     let out = TempDir::new().unwrap();
@@ -285,6 +301,8 @@ fn analyze_writes_retest_plan() {
 }
 
 #[test]
+// Generate diagnostics, pass their directory to retest-plan, and check the
+// JSON schema marker printed when no output path is supplied.
 fn retest_plan_command_prints_json() {
     let root = workspace_root();
     let out = TempDir::new().unwrap();
@@ -312,6 +330,8 @@ fn retest_plan_command_prints_json() {
 }
 
 #[test]
+// Check the emitter-check summary path using bundled metadata and events.
+// This smoke test does not require zero compatibility warnings.
 fn emitter_check_reports_compatibility() {
     let root = workspace_root();
     let mut cmd = Command::cargo_bin("sarakura").unwrap();
@@ -327,6 +347,8 @@ fn emitter_check_reports_compatibility() {
 }
 
 #[test]
+// Exercise normalization and confirm its output file and status message.
+// Detailed aggregation semantics are covered by core tests.
 fn normalize_events_writes_jsonl() {
     let root = workspace_root();
     let out = TempDir::new().unwrap();
@@ -345,6 +367,7 @@ fn normalize_events_writes_jsonl() {
 }
 
 #[test]
+// Generate diagnostics and check CI-summary JSON under the non-failing policy.
 fn ci_summary_reports_status() {
     let root = workspace_root();
     let out = TempDir::new().unwrap();
@@ -374,6 +397,7 @@ fn ci_summary_reports_status() {
 }
 
 #[test]
+// Run GB coverage on fixture events and check its JSON file and platform summary.
 fn coverage_reports_catalog_observation() {
     let root = workspace_root();
     let out = TempDir::new().unwrap();
@@ -393,6 +417,7 @@ fn coverage_reports_catalog_observation() {
 }
 
 #[test]
+// Check the default pack-plan Markdown includes recommendations and the core pack.
 fn pack_plan_lists_recommended_packs() {
     Command::cargo_bin("sarakura")
         .unwrap()
@@ -405,6 +430,8 @@ fn pack_plan_lists_recommended_packs() {
 }
 
 #[test]
+// Exercise the core-pack filter through the CLI and check output creation.
+// The exact filtered diagnostic set is not asserted by this smoke test.
 fn analyze_supports_diagnostic_pack_filter() {
     let root = workspace_root();
     let out = TempDir::new().unwrap();
@@ -426,6 +453,8 @@ fn analyze_supports_diagnostic_pack_filter() {
 }
 
 #[test]
+// Generate a diagnostics directory, then verify repair-plan accepts output
+// directories and writes both requested formats.
 fn repair_plan_command_writes_json_and_markdown() {
     let root = workspace_root();
     let out = TempDir::new().unwrap();
@@ -461,6 +490,7 @@ fn repair_plan_command_writes_json_and_markdown() {
 }
 
 #[test]
+// Check that analysis emits both JSON and Markdown automation proposals.
 fn analyze_writes_automation_plan() {
     let root = workspace_root();
     let out = TempDir::new().unwrap();
@@ -482,6 +512,8 @@ fn analyze_writes_automation_plan() {
 }
 
 #[test]
+// Generate FC diagnostics and check that an explicit KUROSAKI tool hint
+// produces both requested plan files without executing their commands.
 fn automation_plan_command_writes_json_and_markdown() {
     let root = workspace_root();
     let out = TempDir::new().unwrap();
@@ -519,6 +551,8 @@ fn automation_plan_command_writes_json_and_markdown() {
 }
 
 #[test]
+// Supply a restricted KUROSAKI capability fixture and check omission of the
+// diagnostic-break option while retaining JSON output in the generated plan.
 fn automation_plan_honors_capability_file() {
     let root = workspace_root();
     let out = TempDir::new().unwrap();
@@ -562,6 +596,8 @@ fn automation_plan_honors_capability_file() {
 }
 
 #[test]
+// Compare two reports generated from identical inputs, enforce error policies,
+// and check passing status plus both output formats. No regression is injected.
 fn baseline_delta_command_writes_json_and_markdown() {
     let root = workspace_root();
     let baseline = TempDir::new().unwrap();

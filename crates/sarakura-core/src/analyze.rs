@@ -6,6 +6,8 @@ use crate::packs::diagnostic_matches_pack;
 use crate::redaction::redact_document;
 use std::collections::BTreeMap;
 
+// Own the metadata, already-loaded events, catalog and analysis policy for one
+// analysis. No emulator or filesystem work is carried out by the core pipeline.
 pub struct AnalyzeInput {
     pub metadata: BuildMetadata,
     pub events: Vec<DiagnosticEvent>,
@@ -13,6 +15,10 @@ pub struct AnalyzeInput {
     pub options: AnalyzeOptions,
 }
 
+// Aggregate events, correlate source hints and attach catalog-derived repair
+// candidates. Apply filters, rank and limit diagnostics before assigning IDs and
+// summary counts. Redact selected project labels by default. This analyzes supplied
+// observations; it does not validate ROM identity or execute catalog prose.
 pub fn analyze(input: AnalyzeInput) -> AiDiagnosticsDocument {
     let catalog_rules_total = input.catalog.len();
     let catalog = catalog_by_event_type(&input.catalog);
@@ -25,6 +31,8 @@ pub fn analyze(input: AnalyzeInput) -> AiDiagnosticsDocument {
         let rule = catalog.get(&event.event_type);
         let source_mapping = correlate_source(&input.metadata, event);
         let confidence = score_confidence(rule, event, source_mapping.as_ref());
+        // An event severity, even an empty/unknown string, takes precedence over the
+        // catalog. Only absence falls back to the catalog; normalization defaults to warn.
         let severity = normalized_severity(
             event
                 .severity
@@ -74,6 +82,8 @@ pub fn analyze(input: AnalyzeInput) -> AiDiagnosticsDocument {
         });
     }
 
+    // Record the full aggregated diagnostic count before filtering. Summary and CI
+    // counts later describe only retained, possibly truncated diagnostics.
     let diagnostics_before_filter = diagnostics.len();
     diagnostics.retain(|diag| diagnostic_matches_filters(diag, &input.options));
 
@@ -85,6 +95,8 @@ pub fn analyze(input: AnalyzeInput) -> AiDiagnosticsDocument {
             .then_with(|| a.diagnostic_type.cmp(&b.diagnostic_type))
     });
 
+    // A zero limit means unlimited output. Otherwise keep the highest-ranked items,
+    // then assign sequential IDs; IDs are not stable across changed filters/rankings.
     if input.options.summary_limit > 0 && diagnostics.len() > input.options.summary_limit {
         diagnostics.truncate(input.options.summary_limit);
     }
@@ -125,12 +137,17 @@ pub fn analyze(input: AnalyzeInput) -> AiDiagnosticsDocument {
         summary,
         diagnostics,
     };
+    // Apply selected-field redaction after analysis so grouping and correlation use
+    // the original labels. This does not sanitize all free-form text in the document.
     if !input.options.allow_project_labels {
         redact_document(&mut document);
     }
     document
 }
 
+// Group by stable key, preserving the first record's severity and most payload
+// fields. Add counts, fill missing evidence IDs and update last_seen in input
+// order; this is not the stronger-severity/min-max merge in normalize_events.
 fn aggregate_events(events: Vec<DiagnosticEvent>) -> Vec<DiagnosticEvent> {
     let mut grouped: BTreeMap<String, DiagnosticEvent> = BTreeMap::new();
     for mut event in events {
@@ -146,6 +163,8 @@ fn aggregate_events(events: Vec<DiagnosticEvent>) -> Vec<DiagnosticEvent> {
             if existing.trace_window_ref.is_none() {
                 existing.trace_window_ref = event.trace_window_ref.take();
             }
+            // Retain the first available start rather than the minimum frame. The last
+            // record with timing supplies last_seen even if records are out of frame order.
             if existing.first_seen.is_none() {
                 existing.first_seen = event.first_seen.or(event.frame);
             }
@@ -166,6 +185,9 @@ fn aggregate_events(events: Vec<DiagnosticEvent>) -> Vec<DiagnosticEvent> {
     grouped.into_values().collect()
 }
 
+// Require every configured filter family to match. Within type/phase/pack
+// filters, any requested value may match; event/catalog IDs are exact, phase
+// comparison is ASCII case-insensitive and pack matching has its own normalization.
 fn diagnostic_matches_filters(diag: &AiDiagnostic, options: &AnalyzeOptions) -> bool {
     if !options.event_type_filter.is_empty()
         && !options
@@ -202,6 +224,9 @@ fn diagnostic_matches_filters(diag: &AiDiagnostic, options: &AnalyzeOptions) -> 
     true
 }
 
+// Build ordered evidence descriptions: runtime event, optional capture refs,
+// optional mapping, then catalog row. Referenced captures are not opened, and
+// source-mapping confidence remains heuristic evidence rather than execution proof.
 fn build_evidence_chain(
     rule: Option<&DiagnosticRule>,
     event: &DiagnosticEvent,
@@ -293,6 +318,9 @@ fn build_evidence_chain(
     out
 }
 
+// Use catalog candidate order as one-based rank, attaching unique available
+// references. Unknown event types get one unknown_rule candidate; a known rule
+// with no candidates yields an empty list. No patch applicability is tested.
 fn build_target_candidates(
     rule: Option<&DiagnosticRule>,
     event: &DiagnosticEvent,
@@ -330,6 +358,9 @@ fn build_target_candidates(
         .collect()
 }
 
+// Choose the first candidate, then the first catalog target, else manual_inspection.
+// Take source labels from mapping with ID/name hints as fallbacks. Detection
+// prose becomes the reason; no source edit is made or proven safe here.
 fn build_repair_target(
     rule: Option<&DiagnosticRule>,
     event: &DiagnosticEvent,
@@ -363,6 +394,9 @@ fn build_repair_target(
     }
 }
 
+// Count retained diagnostic records, not their summed event occurrences.
+// frames_analyzed is the caller's configured frame value, not a measured span.
+// Any present partial mapping counts as mapped even without a source file/line.
 fn summarize(frames: u64, diagnostics: &[AiDiagnostic]) -> DiagnosticSummary {
     let mut summary = DiagnosticSummary {
         frames_analyzed: frames,
@@ -402,6 +436,8 @@ fn summarize(frames: u64, diagnostics: &[AiDiagnostic]) -> DiagnosticSummary {
     summary
 }
 
+// Normalize error/warn/info aliases and map unrecognized values to warn.
+// Whitespace is not stripped before matching.
 fn normalized_severity(severity: &str) -> String {
     match severity.to_ascii_lowercase().as_str() {
         "error" | "err" => "error".to_string(),
@@ -411,6 +447,8 @@ fn normalized_severity(severity: &str) -> String {
     }
 }
 
+// Rank error above warn above info. Unlike normalized_severity, this helper
+// gives unknown inputs the informational rank; callers normalize when required.
 pub fn severity_rank(severity: &str) -> u8 {
     match severity {
         "error" => 3,
@@ -424,6 +462,8 @@ pub fn severity_rank(severity: &str) -> u8 {
     }
 }
 
+// Drop absent references and exact duplicates while preserving first occurrence
+// order. Present empty strings remain valid entries.
 fn unique_strings<const N: usize>(items: [Option<String>; N]) -> Vec<String> {
     let mut out = Vec::new();
     for item in items.into_iter().flatten() {
@@ -440,6 +480,7 @@ mod tests {
     use serde_json::json;
     use std::collections::BTreeMap;
 
+    // Create a synthetic mapped event with evidence references for pipeline tests.
     fn sample_event(event_type: &str, severity: &str) -> DiagnosticEvent {
         DiagnosticEvent {
             schema: None,
@@ -470,6 +511,8 @@ mod tests {
         }
     }
 
+    // Provide a minimal function/source mapping and synthetic ROM identity;
+    // these fixture labels are not a real build or ROM fingerprint.
     fn sample_metadata() -> BuildMetadata {
         let mut raw = BTreeMap::new();
         raw.insert("schema".to_string(), json!("kitaqgb-ai-build-metadata"));
@@ -491,6 +534,7 @@ mod tests {
         BuildMetadata { raw }
     }
 
+    // Provide one error rule with a VBlank-queue repair candidate for tests.
     fn sample_catalog() -> Vec<DiagnosticRule> {
         vec![DiagnosticRule {
             id: "GBD001".to_string(),
@@ -509,6 +553,8 @@ mod tests {
     }
 
     #[test]
+    // Verify source correlation, retained project labels and summary counts when
+    // allow_project_labels is enabled.
     fn produces_ai_diagnostic_from_event() {
         let doc = analyze(AnalyzeInput {
             metadata: sample_metadata(),
@@ -533,6 +579,8 @@ mod tests {
     }
 
     #[test]
+    // Verify default replacement of selected project/source labels and removal
+    // of the ROM hash; this does not test every free-form field for anonymization.
     fn redacts_project_labels_by_default() {
         let doc = analyze(AnalyzeInput {
             metadata: sample_metadata(),
@@ -562,6 +610,8 @@ mod tests {
     }
 
     #[test]
+    // Check that two records with the same explicit summary key become one
+    // diagnostic with five occurrences.
     fn aggregates_duplicate_events() {
         let mut first = sample_event("VRAM_WRITE_OUTSIDE_SAFE_PERIOD", "error");
         first.summary_key = Some("same".to_string());
@@ -587,6 +637,7 @@ mod tests {
     }
 
     #[test]
+    // Confirm an explicit event warning overrides the catalog's error default.
     fn event_severity_overrides_catalog_default() {
         let doc = analyze(AnalyzeInput {
             metadata: sample_metadata(),
@@ -605,6 +656,8 @@ mod tests {
     }
 
     #[test]
+    // Reject a diagnostic whose phase differs and preserve its prefilter count.
+    // The severity threshold is configured but is not independently challenged here.
     fn filters_by_phase_and_min_severity() {
         let doc = analyze(AnalyzeInput {
             metadata: sample_metadata(),
@@ -626,6 +679,7 @@ mod tests {
     }
 
     #[test]
+    // Check inclusion by the matching PPU domain and exclusion by the audio domain.
     fn filters_by_diagnostic_pack() {
         let doc = analyze(AnalyzeInput {
             metadata: sample_metadata(),

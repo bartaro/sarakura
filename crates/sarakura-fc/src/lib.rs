@@ -6,10 +6,14 @@ use sarakura_core::{
 
 const FC_CATALOG_JSON: &str = include_str!("fc_catalog.json");
 
+// Parse the embedded FC rule catalog on each call; return owned rules or
+// propagate the parse error without consulting an emulator.
 pub fn fc_catalog() -> Result<Vec<sarakura_core::DiagnosticRule>> {
     load_catalog_from_str(FC_CATALOG_JSON)
 }
 
+// Analyze supplied FC metadata and events with default filtering and label
+// redaction. The frame budget is recorded, not executed here.
 pub fn analyze_fc(
     metadata: BuildMetadata,
     events: Vec<DiagnosticEvent>,
@@ -28,6 +32,8 @@ pub fn analyze_fc(
     )
 }
 
+// Select FC unconditionally, load the FC catalog, and pass caller options
+// and input data to the shared analysis pipeline.
 pub fn analyze_fc_with_options(
     metadata: BuildMetadata,
     events: Vec<DiagnosticEvent>,
@@ -50,6 +56,8 @@ mod tests {
     use std::path::PathBuf;
 
     #[test]
+    // Check the catalog count, selected legacy IDs and required MMC1/SUROM IDs,
+    // including the PPU write-risk mapping. Emitter behavior is not tested here.
     fn catalog_has_surom_rules() {
         let rules = fc_catalog().unwrap();
         assert_eq!(rules.len(), 74);
@@ -73,6 +81,8 @@ mod tests {
     }
 
     #[test]
+    // Analyze the bundled synthetic fixture and check label redaction plus the
+    // two diagnostics' evidence, target and retest fields. No emulator is run.
     fn synthetic_surom_fixture_produces_redacted_actionable_diagnostics() {
         let fixture =
             PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../tests/fixtures/surom512");

@@ -7,6 +7,8 @@ import argparse
 from pathlib import Path
 
 
+# Limit scanning to recognized text formats and exact special filenames.
+# Binary assets and unknown suffixes are outside this name check.
 TEXT_SUFFIXES = {
     ".c", ".cc", ".cpp", ".cs", ".h", ".hpp", ".json", ".jsonl",
     ".md", ".ps1", ".py", ".rs", ".sh", ".toml", ".txt", ".xml",
@@ -19,6 +21,8 @@ EXCLUDED_DIRS = {
 }
 
 
+# Read the private UTF-8 denylist, allowing a BOM, blank lines and hash-prefixed
+# comments. Unicode case-folding makes comparisons case-insensitive.
 def load_terms(path: Path) -> list[str]:
     terms = []
     for line in path.read_text(encoding="utf-8-sig").splitlines():
@@ -28,6 +32,9 @@ def load_terms(path: Path) -> list[str]:
     return terms
 
 
+# Yield recognized text files, excluding the resolved denylist and paths
+# under named generated directories. rglob still traverses before this filter;
+# this is a filename selection rule, not an archive or symlink security boundary.
 def iter_text_files(root: Path, denylist: Path):
     for path in root.rglob("*"):
         if not path.is_file() or path.resolve() == denylist:
@@ -39,6 +46,9 @@ def iter_text_files(root: Path, denylist: Path):
             yield path
 
 
+# Record one path/line match when any deny term occurs as a substring.
+# Decode damaged UTF-8 with replacement and keep matched text out of results.
+# This heuristic detects names, not provenance, licensing or legal ownership.
 def scan(root: Path, denylist: Path) -> list[tuple[Path, int]]:
     terms = load_terms(denylist)
     matches = []
@@ -52,6 +62,8 @@ def scan(root: Path, denylist: Path) -> list[tuple[Path, int]]:
     return matches
 
 
+# Resolve CLI paths, scan with the caller's private terms and return 1 when
+# matches exist. Output gives locations without echoing terms or source lines.
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path.cwd())

@@ -6,15 +6,19 @@ use std::fs;
 use std::path::Path;
 
 #[derive(Debug, Clone, Serialize)]
+// Pair a stable export filename with the JSON value written to that file.
 pub struct SchemaEntry {
     pub file_name: String,
     pub schema: Value,
 }
 
+// Read and check a diagnostics file with the permissive validation policy.
 pub fn validate_ai_diagnostics_file(path: impl AsRef<Path>) -> Result<()> {
     validate_ai_diagnostics_file_with_options(path, false)
 }
 
+// Read UTF-8 JSON and pass it to the selected structural checks. Attach the
+// input path to I/O and JSON syntax errors; semantic validation errors propagate.
 pub fn validate_ai_diagnostics_file_with_options(
     path: impl AsRef<Path>,
     strict: bool,
@@ -27,15 +31,21 @@ pub fn validate_ai_diagnostics_file_with_options(
     validate_ai_diagnostics_value_with_options(&json, strict)
 }
 
+// Apply the permissive structural checks to an already parsed JSON value.
 pub fn validate_ai_diagnostics_value(json: &Value) -> Result<()> {
     validate_ai_diagnostics_value_with_options(json, false)
 }
 
+// Check selected document fields and each diagnostic, stopping at the first
+// error. Strict mode adds ID uniqueness, confidence bounds and required retest
+// content; it is not a full nested-schema or summary-consistency validator.
 pub fn validate_ai_diagnostics_value_with_options(json: &Value, strict: bool) -> Result<()> {
     let schema = json
         .get("schema")
         .and_then(Value::as_str)
         .unwrap_or_default();
+    // The legacy name check accepts both substrings anywhere in the schema text;
+    // it is not an exact match or a wildcard-pattern validator.
     if !schema.contains("sarakura") || !schema.contains("ai-diagnostics") {
         bail!("schema must be sarakura-*-ai-diagnostics, got {:?}", schema);
     }
@@ -45,6 +55,7 @@ pub fn validate_ai_diagnostics_value_with_options(json: &Value, strict: bool) ->
     required_object(json, "summary")?;
     if strict {
         required_str(json, "platform")?;
+        // Require the key to exist; a null value is allowed for redacted/unknown IDs.
         if json.get("build_id").is_none() {
             bail!("build_id is required in strict mode");
         }
@@ -91,6 +102,7 @@ pub fn validate_ai_diagnostics_value_with_options(json: &Value, strict: bool) ->
                         "diagnostics[{idx}].retest_condition.expect_absent must be an array"
                     )
                 })?;
+            // Require at least one element, without checking each element's type or value.
             if expect_absent.is_empty() {
                 bail!("diagnostics[{idx}].retest_condition.expect_absent must not be empty");
             }
@@ -99,6 +111,8 @@ pub fn validate_ai_diagnostics_value_with_options(json: &Value, strict: bool) ->
     Ok(())
 }
 
+// Build the thirteen named schema exports in a stable order. Each uses the
+// same minimal envelope schema below, rather than a complete document contract.
 pub fn schema_entries() -> Vec<SchemaEntry> {
     vec![
         schema_entry(
@@ -147,6 +161,8 @@ pub fn schema_entries() -> Vec<SchemaEntry> {
     ]
 }
 
+// Create the destination directory, write each schema as pretty JSON, and
+// return its displayed path. Earlier files remain if a later write fails.
 pub fn write_schema_bundle(out_dir: impl AsRef<Path>) -> Result<Vec<String>> {
     let out_dir = out_dir.as_ref();
     fs::create_dir_all(out_dir)
@@ -161,6 +177,9 @@ pub fn write_schema_bundle(out_dir: impl AsRef<Path>) -> Result<Vec<String>> {
     Ok(written)
 }
 
+// Describe an object with a string schema and an integer version of at least
+// one, allowing other fields. The title does not constrain schema-name values;
+// these exports do not reproduce the custom diagnostics validator above.
 fn schema_entry(file_name: &str, schema_name: &str) -> SchemaEntry {
     SchemaEntry {
         file_name: file_name.to_string(),
@@ -179,36 +198,47 @@ fn schema_entry(file_name: &str, schema_name: &str) -> SchemaEntry {
     }
 }
 
+// Borrow a named JSON object or report a missing/wrong-type field. Its members
+// are not inspected by this helper.
 fn required_object<'a>(json: &'a Value, key: &str) -> Result<&'a serde_json::Map<String, Value>> {
     json.get(key)
         .and_then(Value::as_object)
         .ok_or_else(|| anyhow::anyhow!("{key} object is required"))
 }
 
+// Require an unsigned JSON integer. Zero is accepted; this helper does not
+// enforce a supported schema version.
 fn required_u64(json: &Value, key: &str) -> Result<u64> {
     json.get(key)
         .and_then(Value::as_u64)
         .ok_or_else(|| anyhow::anyhow!("{key} is required and must be u64"))
 }
 
+// Borrow a named JSON string without trimming or rejecting empty text.
 fn required_str<'a>(json: &'a Value, key: &str) -> Result<&'a str> {
     json.get(key)
         .and_then(Value::as_str)
         .ok_or_else(|| anyhow::anyhow!("{key} is required and must be string"))
 }
 
+// Require a string and include the diagnostic index in any error. Empty
+// strings are accepted unless the calling check rejects them.
 fn required_str_at<'a>(json: &'a Value, key: &str, idx: usize) -> Result<&'a str> {
     json.get(key)
         .and_then(Value::as_str)
         .ok_or_else(|| anyhow::anyhow!("diagnostics[{idx}].{key} is required and must be string"))
 }
 
+// Read a JSON number as f64 and report its diagnostic index on type errors.
+// Range validation belongs to the caller.
 fn required_number_at(json: &Value, key: &str, idx: usize) -> Result<f64> {
     json.get(key)
         .and_then(Value::as_f64)
         .ok_or_else(|| anyhow::anyhow!("diagnostics[{idx}].{key} is required and must be number"))
 }
 
+// Borrow a diagnostic object member with an indexed type-error message;
+// validation of the nested fields remains with the caller.
 fn required_object_at<'a>(
     json: &'a Value,
     key: &str,
@@ -219,6 +249,7 @@ fn required_object_at<'a>(
         .ok_or_else(|| anyhow::anyhow!("diagnostics[{idx}].{key} is required and must be object"))
 }
 
+// Require an array member without checking its length or element types.
 fn required_array_at(json: &Value, key: &str, idx: usize) -> Result<()> {
     if json.get(key).and_then(Value::as_array).is_none() {
         bail!("diagnostics[{idx}].{key} is required and must be array");
@@ -231,6 +262,8 @@ mod tests {
     use super::*;
 
     #[test]
+    // Check that two required export names are present; this does not validate
+    // the complete contents of the generated schemas.
     fn schema_bundle_contains_v1_contract_files() {
         let entries = schema_entries();
         assert!(entries
@@ -242,6 +275,8 @@ mod tests {
     }
 
     #[test]
+    // Exercise the strict-mode requirement for at least one expected-absent
+    // event, using otherwise sufficient synthetic document fields.
     fn strict_validation_rejects_empty_retest_condition() {
         let value = json!({
             "schema": "sarakura-gb-ai-diagnostics",

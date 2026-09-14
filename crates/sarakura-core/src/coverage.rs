@@ -4,6 +4,9 @@ use crate::model::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 
+// Count normalized occurrences by exact event type, then mark every catalog row
+// whose type was seen. This measures observed catalog coverage, not whether a
+// rule detected a real fault; multiple rules for one type share its event count.
 pub fn build_catalog_coverage(
     platform: Platform,
     catalog: &[DiagnosticRule],
@@ -14,6 +17,8 @@ pub fn build_catalog_coverage(
         *event_counts.entry(event.event_type.clone()).or_insert(0) += event.normalized_count();
     }
 
+    // Keep unknown types in sorted order and attach spelling-similarity suggestions
+    // without rewriting events or automatically choosing a catalog rule.
     let known_types: BTreeSet<_> = catalog.iter().map(|r| r.event_type.clone()).collect();
     let unknown_event_types = event_counts
         .keys()
@@ -56,6 +61,9 @@ pub fn build_catalog_coverage(
     }
 }
 
+// Score unique shared name tokens by their byte lengths. Return at most three
+// positive-scoring rules, descending by score and then by rule ID. These lexical
+// candidates do not establish semantic equivalence between diagnostic events.
 fn suggest_catalog_candidates(
     event_type: &str,
     catalog: &[DiagnosticRule],
@@ -97,6 +105,8 @@ fn suggest_catalog_candidates(
     }
 }
 
+// Split on non-ASCII-alphanumeric characters, discard tokens of length two or
+// less, lowercase ASCII and deduplicate before computing name similarity.
 fn tokenize(value: &str) -> BTreeSet<String> {
     value
         .split(|c: char| !c.is_ascii_alphanumeric())
@@ -112,6 +122,7 @@ mod tests {
     use serde_json::Value;
     use std::collections::BTreeMap;
 
+    // Build a minimal catalog row with caller-selected identity for coverage tests.
     fn rule(id: &str, event_type: &str) -> DiagnosticRule {
         DiagnosticRule {
             id: id.to_string(),
@@ -129,6 +140,7 @@ mod tests {
         }
     }
 
+    // Create a two-occurrence event with no source or timing metadata.
     fn event(event_type: &str) -> DiagnosticEvent {
         DiagnosticEvent {
             schema: None,
@@ -160,6 +172,8 @@ mod tests {
     }
 
     #[test]
+    // Check one observed rule, one missing rule and one unknown type, including
+    // the effective occurrence count and a suggestion record for the unknown type.
     fn reports_catalog_coverage_and_unknown_events() {
         let report = build_catalog_coverage(
             Platform::Gb,

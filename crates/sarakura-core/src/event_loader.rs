@@ -11,6 +11,8 @@ use std::path::Path;
 /// all events in memory.
 pub fn load_events_jsonl(path: impl AsRef<Path>) -> Result<Vec<DiagnosticEvent>> {
     let path = path.as_ref();
+    // Inspect the full text to detect array fixtures, then reopen JSONL for line-based
+    // parsing. The loader still materializes the input and result; it is not streaming end to end.
     let text = fs::read_to_string(path)
         .with_context(|| format!("failed to open events jsonl: {}", path.display()))?;
     let trimmed = text.trim_start();
@@ -28,6 +30,7 @@ pub fn load_events_jsonl(path: impl AsRef<Path>) -> Result<Vec<DiagnosticEvent>>
         .with_context(|| format!("failed to open events jsonl: {}", path.display()))?;
     let reader = BufReader::new(file);
     let mut out = Vec::new();
+    // Skip blank/comment lines and attach a one-based input line number to parse errors.
     for (idx, line) in reader.lines().enumerate() {
         let line = line.with_context(|| format!("failed to read line {}", idx + 1))?;
         let trimmed = line.trim();
@@ -52,6 +55,7 @@ mod tests {
     use std::io::Write;
 
     #[test]
+    // Verify a single JSONL event can be loaded with its event type preserved.
     fn loads_jsonl_events() {
         let mut tmp = tempfile::NamedTempFile::new().unwrap();
         writeln!(
@@ -65,6 +69,7 @@ mod tests {
     }
 
     #[test]
+    // Verify the compact JSON-array fixture format is accepted alongside production JSONL.
     fn loads_json_array_fixture() {
         let mut tmp = tempfile::NamedTempFile::new().unwrap();
         writeln!(

@@ -4,6 +4,9 @@ use crate::model::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 
+// Group diagnostics by repair target/source identity, then order steps by
+// severity priority, descending occurrence count and confidence, and target name.
+// Assign IDs after sorting. This prepares work; it does not perform repairs.
 pub fn build_repair_plan(doc: &AiDiagnosticsDocument) -> RepairPlan {
     let mut groups: BTreeMap<String, Vec<&AiDiagnostic>> = BTreeMap::new();
     for diagnostic in &doc.diagnostics {
@@ -54,6 +57,9 @@ pub fn build_repair_plan(doc: &AiDiagnosticsDocument) -> RepairPlan {
     }
 }
 
+// Render English work-order guidance and step details without escaping arbitrary
+// labels. This display includes frames/expect_absent, while the structured plan
+// also carries expect_not_worse and required_outputs.
 pub fn render_repair_plan_markdown(plan: &RepairPlan) -> String {
     let mut out = String::new();
     out.push_str("# SARAKURA repair plan\n\n");
@@ -121,6 +127,9 @@ pub fn render_repair_plan_markdown(plan: &RepairPlan) -> String {
     out
 }
 
+// Join target type, file, line, function name and operation ID. Missing values
+// use question marks. Function ID and diagnostic type are omitted; separators
+// are not escaped, so callers should not treat this as a collision-proof key.
 fn repair_group_key(diagnostic: &AiDiagnostic) -> String {
     format!(
         "{}|file={}|line={}|func={}|op={}",
@@ -144,6 +153,9 @@ fn repair_group_key(diagnostic: &AiDiagnostic) -> String {
     )
 }
 
+// Require a nonempty group. Sum occurrence counts, take strongest severity and
+// maximum confidence/frame budget, and union sorted hints/retest/evidence lists.
+// Shared target labels come from the first input; function IDs may differ.
 fn build_step_from_group(diagnostics: &[&AiDiagnostic]) -> RepairPlanStep {
     let first = diagnostics[0];
     let severity = strongest_severity(diagnostics);
@@ -215,6 +227,8 @@ fn build_step_from_group(diagnostics: &[&AiDiagnostic]) -> RepairPlanStep {
     }
 }
 
+// Choose the lowest priority rank after normalization; empty input yields info.
+// This helper alone accepts empty input, unlike build_step_from_group.
 fn strongest_severity(diagnostics: &[&AiDiagnostic]) -> String {
     diagnostics
         .iter()
@@ -223,6 +237,8 @@ fn strongest_severity(diagnostics: &[&AiDiagnostic]) -> String {
         .unwrap_or_else(|| "info".to_string())
 }
 
+// Canonicalize error/err and warn/warning; every other value becomes info.
+// This differs from the main analyzer's unknown-to-warn policy.
 fn normalize_severity(severity: &str) -> String {
     match severity.to_ascii_lowercase().as_str() {
         "error" | "err" => "error".to_string(),
@@ -231,6 +247,7 @@ fn normalize_severity(severity: &str) -> String {
     }
 }
 
+// Use ascending work priority: error=0, warn=1 and info/other=2.
 fn severity_rank(severity: &str) -> u32 {
     match normalize_severity(severity).as_str() {
         "error" => 0,
@@ -244,6 +261,8 @@ mod tests {
     use super::*;
     use crate::model::{DiagnosticSummary, RepairTarget, RomSummary, RunSummary, SourceMapping};
 
+    // Create a synthetic diagnostic with configurable ID, severity and target,
+    // while keeping its source key and retest requirements fixed.
     fn sample_diag(id: &str, severity: &str, target: &str) -> AiDiagnostic {
         AiDiagnostic {
             diagnostic_id: id.to_string(),
@@ -292,6 +311,7 @@ mod tests {
         }
     }
 
+    // Create two differently severe observations of the same repair target/source.
     fn sample_doc() -> AiDiagnosticsDocument {
         AiDiagnosticsDocument {
             schema: "sarakura-gb-ai-diagnostics".to_string(),
@@ -331,6 +351,8 @@ mod tests {
     }
 
     #[test]
+    // Check that the shared target/source becomes one error-priority step with
+    // two diagnostic IDs and four total occurrences.
     fn repair_plan_groups_by_repair_target() {
         let plan = build_repair_plan(&sample_doc());
         assert_eq!(plan.summary.total_steps, 1);
@@ -340,6 +362,7 @@ mod tests {
     }
 
     #[test]
+    // Check the English heading and generated first step ID in Markdown output.
     fn markdown_contains_steps() {
         let plan = build_repair_plan(&sample_doc());
         let markdown = render_repair_plan_markdown(&plan);

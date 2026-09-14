@@ -9,6 +9,8 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use zip::write::FileOptions;
 
+// Render an English HTML document from the supplied diagnostics without re-running
+// analysis or redaction. Encode dynamic text before adding the surrounding markup.
 pub fn render_html(doc: &AiDiagnosticsDocument) -> String {
     let mut html = String::new();
     html.push_str("<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">");
@@ -41,6 +43,8 @@ pub fn render_html(doc: &AiDiagnosticsDocument) -> String {
         doc.run.events_loaded, doc.run.events_aggregated, doc.run.catalog_rules_total, doc.run.diagnostics_before_filter));
 
     html.push_str("<h2>Breakdown</h2><table><thead><tr><th>Phase</th><th>Count</th><th>Category</th><th>Count</th><th>Repair target</th><th>Count</th></tr></thead><tbody>");
+    // Display three independently sorted breakdowns side by side; entries on
+    // the same row do not imply a relationship. Shorter lists receive blank cells.
     let max_rows = *[
         doc.summary.phases.len(),
         doc.summary.categories.len(),
@@ -89,9 +93,12 @@ pub fn render_html(doc: &AiDiagnosticsDocument) -> String {
                 })
             })
             .unwrap_or_else(|| "-".to_string());
+        // Escape each reference as display text before inserting the line separator.
+        // Escaping only the joined string would also hide the intentional <br> markup.
         let refs = [d.snapshot_ref.as_deref(), d.trace_window_ref.as_deref()]
             .into_iter()
             .flatten()
+            .map(escape)
             .collect::<Vec<_>>()
             .join("<br>");
         html.push_str(&format!(
@@ -104,6 +111,8 @@ pub fn render_html(doc: &AiDiagnosticsDocument) -> String {
     html
 }
 
+// Create the parent directory and replace the report file with rendered UTF-8 HTML.
+// Write failures carry the destination path; the write is not atomic.
 pub fn write_html_report(path: impl AsRef<Path>, doc: &AiDiagnosticsDocument) -> Result<()> {
     let path = path.as_ref();
     if let Some(parent) = path.parent() {
@@ -115,6 +124,9 @@ pub fn write_html_report(path: impl AsRef<Path>, doc: &AiDiagnosticsDocument) ->
     Ok(())
 }
 
+// Compare stored totals and sets of diagnostic types in English Markdown. A type
+// is resolved only when absent from the later document; source locations and
+// per-instance regressions are not compared here. Callers must choose comparable runs.
 pub fn compare_documents(before: &AiDiagnosticsDocument, after: &AiDiagnosticsDocument) -> String {
     let mut md = String::new();
     md.push_str("# SARAKURA before/after comparison\n\n");
@@ -140,6 +152,8 @@ pub fn compare_documents(before: &AiDiagnosticsDocument, after: &AiDiagnosticsDo
         after.summary.unmapped_diagnostics
     );
 
+    // Deduplicate type names, so count changes within a surviving type do not
+    // appear as newly introduced or resolved types.
     let before_types: BTreeSet<_> = before
         .diagnostics
         .iter()
@@ -179,6 +193,10 @@ pub fn compare_documents(before: &AiDiagnosticsDocument, after: &AiDiagnosticsDo
     md
 }
 
+// Package derived reports and plans in a deflated ZIP. Original input paths are
+// intentionally ignored; no ROM, source file, snapshot or trace is copied. The
+// supplied document is serialized as-is, so apply label redaction before this call
+// when needed. Errors can leave a partial archive at the destination.
 pub fn write_repro_bundle(
     out_zip: impl AsRef<Path>,
     _input_paths: &[PathBuf],
@@ -217,6 +235,8 @@ pub fn write_repro_bundle(
     zip.start_file("repair_plan.md", options)?;
     zip.write_all(render_repair_plan_markdown(&repair_plan).as_bytes())?;
 
+    // Regenerate the default command proposal for this bundle; the archive
+    // contains descriptions and commands, not evidence that those commands ran.
     let automation_plan = build_automation_plan(doc, None);
     zip.start_file("automation_plan.json", options)?;
     zip.write_all(serde_json::to_string_pretty(&automation_plan)?.as_bytes())?;
@@ -249,10 +269,13 @@ pub fn write_repro_bundle(
     zip.start_file("manifest.json", options)?;
     zip.write_all(serde_json::to_string_pretty(&manifest)?.as_bytes())?;
 
+    // Write the ZIP central directory and propagate finalization errors.
     zip.finish()?;
     Ok(())
 }
 
+// Encode HTML text and double-quoted attribute delimiters, replacing ampersands
+// first so the generated entities are not encoded again. This is not URL encoding.
 fn escape(s: &str) -> String {
     s.replace('&', "&amp;")
         .replace('<', "&lt;")

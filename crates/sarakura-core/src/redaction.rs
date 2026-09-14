@@ -4,6 +4,9 @@ use crate::model::AiDiagnosticsDocument;
 /// Runtime addresses, rule IDs, counts, confidence, and repair categories remain
 /// available so the result stays useful for automated diagnosis.
 pub fn redact_document(document: &mut AiDiagnosticsDocument) {
+    // Redact the explicitly handled identity fields only. Repeated labels collapse
+    // to shared placeholders rather than preserving distinct pseudonymous identities;
+    // free-form hints, reasons and unhandled notes are not scrubbed by this function.
     if document.build_id.is_some() {
         document.build_id = Some("project_0001".to_string());
     }
@@ -48,6 +51,7 @@ pub fn redact_document(document: &mut AiDiagnosticsDocument) {
     }
 }
 
+// Replace only existing values so redaction does not invent data for absent fields.
 fn replace_if_present(value: &mut Option<String>, replacement: &str) {
     if value.is_some() {
         *value = Some(replacement.to_string());
@@ -60,6 +64,7 @@ mod tests {
     use crate::model::{AiDiagnosticsDocument, DiagnosticSummary, RomSummary, RunSummary};
 
     #[test]
+    // Verify that identifying top-level fields are scrubbed while the platform target is retained.
     fn removes_top_level_path_hash_and_build_label() {
         let mut doc = AiDiagnosticsDocument {
             schema: "schema".to_string(),

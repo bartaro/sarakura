@@ -9,6 +9,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Default)]
+// Configure advisory input checks. Defaults disable filesystem-reference checks
+// and leave the schema substring empty; callers should supply the expected
+// producer prefix when they need a meaningful schema-name check.
 pub struct EmitterCompatibilityOptions {
     pub expected_schema_prefix: String,
     pub check_snapshot_refs: bool,
@@ -16,6 +19,9 @@ pub struct EmitterCompatibilityOptions {
     pub base_dir: Option<PathBuf>,
 }
 
+// Count input records separately from their effective occurrences. Type and
+// severity totals use occurrence counts; IDs and evidence references count
+// records. Frame bounds use first/last-seen values with frame as the fallback.
 pub fn inspect_events(events: &[DiagnosticEvent]) -> EventInspectionSummary {
     let mut summary = EventInspectionSummary {
         events_loaded: events.len(),
@@ -51,6 +57,8 @@ pub fn inspect_events(events: &[DiagnosticEvent]) -> EventInspectionSummary {
     summary
 }
 
+// Summarize top-level metadata identity and array lengths without validating
+// array elements, nested objects or the relationship between metadata and ROM.
 pub fn inspect_metadata(metadata: &BuildMetadata) -> MetadataInspectionSummary {
     let mut array_counts = BTreeMap::new();
     for (key, value) in &metadata.raw {
@@ -69,6 +77,9 @@ pub fn inspect_metadata(metadata: &BuildMetadata) -> MetadataInspectionSummary {
     }
 }
 
+// Combine diagnostic retest requirements: take the largest frame budget and
+// sorted unique output/expectation names, while preserving per-diagnostic order.
+// This creates a plan only; it does not execute or judge the requested rerun.
 pub fn build_retest_plan(doc: &AiDiagnosticsDocument) -> RetestPlan {
     let mut expect_absent = BTreeSet::new();
     let mut expect_not_worse = BTreeSet::new();
@@ -111,6 +122,9 @@ pub fn build_retest_plan(doc: &AiDiagnosticsDocument) -> RetestPlan {
     }
 }
 
+// Create the parent directory and write a pretty JSON retest plan directly to
+// the destination. Existing content is replaced; I/O and serialization failures
+// are returned with context, without an atomic replacement transaction.
 pub fn write_retest_plan(path: impl AsRef<Path>, doc: &AiDiagnosticsDocument) -> Result<()> {
     let path = path.as_ref();
     if let Some(parent) = path.parent() {
@@ -123,6 +137,8 @@ pub fn write_retest_plan(path: impl AsRef<Path>, doc: &AiDiagnosticsDocument) ->
     Ok(())
 }
 
+// Use the metadata-present compatibility path with reference existence checks
+// disabled; this convenience wrapper returns warnings instead of rejecting input.
 pub fn validate_emitter_compatibility(
     metadata: &BuildMetadata,
     events: &[DiagnosticEvent],
@@ -138,6 +154,9 @@ pub fn validate_emitter_compatibility(
     )
 }
 
+// Inspect metadata identity and at most the first 20 event records for missing
+// fields, unusual severity and optional missing references. Schema matching is
+// a substring check, not schema validation. Later events are not examined here.
 pub fn validate_emitter_compatibility_with_options(
     metadata: Option<&BuildMetadata>,
     events: &[DiagnosticEvent],
@@ -231,6 +250,9 @@ pub fn validate_emitter_compatibility_with_options(
     warnings
 }
 
+// Check only a present reference, relative to base_dir when supplied. Existence
+// alone is tested: directories can pass, and file format/content is not read.
+// Absent references are handled by the caller's missing-field warnings.
 fn check_ref_exists(
     warnings: &mut Vec<String>,
     field: &str,
@@ -250,6 +272,7 @@ fn check_ref_exists(
     }
 }
 
+// Widen the minimum/maximum observed frame interval; absent timing adds nothing.
 fn update_frame_range(range: &mut FrameRange, frame: Option<u64>) {
     let Some(frame) = frame else {
         return;
@@ -258,6 +281,8 @@ fn update_frame_range(range: &mut FrameRange, frame: Option<u64>) {
     range.last = Some(range.last.map(|x| x.max(frame)).unwrap_or(frame));
 }
 
+// Map supported aliases to error, warn or info, preserving other lowercased
+// values so compatibility checks can report nonstandard severity names.
 fn normalize_severity(severity: &str) -> String {
     match severity.to_ascii_lowercase().as_str() {
         "error" | "err" => "error".to_string(),
@@ -267,6 +292,7 @@ fn normalize_severity(severity: &str) -> String {
     }
 }
 
+// Return the number of object members, or zero for absent and non-object values.
 pub fn json_object_len(value: Option<&Value>) -> usize {
     value
         .and_then(Value::as_object)
@@ -280,6 +306,8 @@ mod tests {
     use crate::model::DiagnosticEvent;
 
     #[test]
+    // Distinguish one input record from three occurrences and verify explicit
+    // first/last frame bounds and one snapshot reference.
     fn event_inspection_counts_effective_events() {
         let event = DiagnosticEvent {
             schema: None,

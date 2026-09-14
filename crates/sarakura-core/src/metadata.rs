@@ -5,6 +5,8 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
+// Read a UTF-8 JSON object into a generic metadata map, retaining unknown
+// fields. File/JSON errors propagate; schema and ROM identity are not validated here.
 pub fn load_metadata(path: impl AsRef<Path>) -> Result<BuildMetadata> {
     let path = path.as_ref();
     let text = fs::read_to_string(path)
@@ -14,6 +16,9 @@ pub fn load_metadata(path: impl AsRef<Path>) -> Result<BuildMetadata> {
     Ok(BuildMetadata { raw })
 }
 
+// Try guessed operation ID, guessed function ID, then PC range in that order.
+// The first match wins. If only source hints or a PC remain, return a partial
+// low-confidence mapping; matching is heuristic, not proof of executed source.
 pub fn correlate_source(
     metadata: &BuildMetadata,
     event: &DiagnosticEvent,
@@ -54,6 +59,9 @@ pub fn correlate_source(
     None
 }
 
+// Search the listed operation arrays and their items in order, accepting the
+// first recognized ID match. Duplicate IDs are not disambiguated by bank or PC;
+// non-array metadata fields are skipped, even when their names appear below.
 fn find_op_mapping(
     metadata: &BuildMetadata,
     op_id: &str,
@@ -133,6 +141,8 @@ fn find_op_mapping(
     None
 }
 
+// Return the first functions-array item whose recognized ID equals the guess,
+// using the caller-supplied confidence without verifying its runtime address.
 fn find_function_mapping(
     metadata: &BuildMetadata,
     function_id: &str,
@@ -148,6 +158,9 @@ fn find_function_mapping(
     None
 }
 
+// Match the first inclusive PC interval after parsing numeric aliases. Bank
+// identity is not part of this search. A range missing either valid endpoint
+// returns None immediately instead of continuing to later entries.
 fn find_pc_range_mapping(
     metadata: &BuildMetadata,
     pc: &str,
@@ -170,6 +183,8 @@ fn find_pc_range_mapping(
     None
 }
 
+// Accept any recognized identifier field with an exact textual/numeric match.
+// Fields are alternatives; this does not require a unique or type-specific ID.
 fn object_has_id(v: &Value, wanted: &str) -> bool {
     let keys = [
         "id",
@@ -193,6 +208,8 @@ fn object_has_id(v: &Value, wanted: &str) -> bool {
     keys.iter().any(|k| value_matches_id(v.get(*k), wanted))
 }
 
+// Compare strings verbatim or JSON numbers in their displayed decimal form.
+// Do not coerce booleans, arrays or differently formatted numeric strings.
 fn value_matches_id(value: Option<&Value>, wanted: &str) -> bool {
     match value {
         Some(Value::String(s)) => s == wanted,
@@ -201,6 +218,9 @@ fn value_matches_id(value: Option<&Value>, wanted: &str) -> bool {
     }
 }
 
+// Combine recognized metadata aliases with event hints. The event PC and bank
+// values take precedence; source/function labels generally prefer metadata.
+// The supplied confidence is recorded without further validation or clamping.
 fn mapping_from_object(
     v: &Value,
     event: &DiagnosticEvent,
@@ -233,10 +253,15 @@ fn mapping_from_object(
     }
 }
 
+// Return the first alias whose value is a string, skipping absent/wrong-type
+// fields. An empty string is a present value and stops the search.
 fn get_any_str<'a>(v: &'a Value, keys: &[&str]) -> Option<&'a str> {
     keys.iter().find_map(|k| v.get(*k).and_then(Value::as_str))
 }
 
+// Read the first signed JSON integer or parseable unsigned decimal/hex string.
+// String results use an as-i64 cast, so values above i64::MAX wrap into negatives;
+// negative strings are rejected by the shared unsigned parser.
 fn get_any_i64(v: &Value, keys: &[&str]) -> Option<i64> {
     keys.iter().find_map(|k| {
         v.get(*k).and_then(|x| {
@@ -246,6 +271,8 @@ fn get_any_i64(v: &Value, keys: &[&str]) -> Option<i64> {
     })
 }
 
+// Read the first unsigned JSON integer or decimal/0x-prefixed string among
+// the aliases, skipping missing or unparsable values.
 fn get_any_u64(v: &Value, keys: &[&str]) -> Option<u64> {
     keys.iter().find_map(|k| {
         v.get(*k)
@@ -253,6 +280,8 @@ fn get_any_u64(v: &Value, keys: &[&str]) -> Option<u64> {
     })
 }
 
+// Trim surrounding whitespace and parse an unsigned value in decimal or with
+// a 0x/0X hexadecimal prefix. Invalid text and overflow return None.
 fn parse_hex_or_dec(s: &str) -> Option<u64> {
     let s = s.trim();
     if let Some(hex) = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
@@ -262,6 +291,8 @@ fn parse_hex_or_dec(s: &str) -> Option<u64> {
     }
 }
 
+// Format uppercase hexadecimal with a lowercase 0x prefix and at least four
+// digits; larger addresses are not truncated to 16 bits.
 fn format_hex(n: u64) -> String {
     format!("0x{n:04X}")
 }

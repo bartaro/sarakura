@@ -5,6 +5,8 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
+// Group events by stable key, merge repeated observations and return key-sorted
+// results. Inputs are cloned; normalization does not mutate the caller's events.
 pub fn normalize_events(events: &[DiagnosticEvent]) -> Vec<DiagnosticEvent> {
     let mut by_key: BTreeMap<String, DiagnosticEvent> = BTreeMap::new();
     for event in events {
@@ -27,6 +29,8 @@ pub fn normalize_events(events: &[DiagnosticEvent]) -> Vec<DiagnosticEvent> {
     by_key.into_values().collect()
 }
 
+// Serialize one event per line and replace the destination file, creating parent
+// directories as needed. Serialization and I/O errors retain operation context.
 pub fn write_events_jsonl(path: impl AsRef<Path>, events: &[DiagnosticEvent]) -> Result<()> {
     let path = path.as_ref();
     if let Some(parent) = path.parent() {
@@ -41,6 +45,9 @@ pub fn write_events_jsonl(path: impl AsRef<Path>, events: &[DiagnosticEvent]) ->
     fs::write(path, out).with_context(|| format!("failed to write {}", path.display()))
 }
 
+// Accumulate occurrence counts and widen the observed frame interval. Keep the
+// strongest severity and fill missing evidence references without replacing ones
+// already present; this does not concatenate all raw event payloads.
 fn merge_event(existing: &mut DiagnosticEvent, incoming: &DiagnosticEvent) {
     let count = existing.normalized_count() + incoming.normalized_count();
     existing.count = Some(count);
@@ -73,11 +80,13 @@ fn merge_event(existing: &mut DiagnosticEvent, incoming: &DiagnosticEvent) {
     }
 }
 
+// Compare normalized severities strictly; missing and unknown values behave as warnings.
 fn stronger_severity(incoming: Option<&str>, existing: Option<&str>) -> bool {
     severity_rank(&normalize_severity(incoming.unwrap_or("warn")))
         > severity_rank(&normalize_severity(existing.unwrap_or("warn")))
 }
 
+// Canonicalize accepted aliases to error, warn or info; unknown input becomes warn.
 fn normalize_severity(severity: &str) -> String {
     match severity.to_ascii_lowercase().as_str() {
         "error" | "err" => "error".to_string(),
@@ -87,6 +96,7 @@ fn normalize_severity(severity: &str) -> String {
     }
 }
 
+// Choose the earliest available frame while preserving absence when both inputs are absent.
 fn min_opt(a: Option<u64>, b: Option<u64>) -> Option<u64> {
     match (a, b) {
         (Some(a), Some(b)) => Some(a.min(b)),
@@ -96,6 +106,7 @@ fn min_opt(a: Option<u64>, b: Option<u64>) -> Option<u64> {
     }
 }
 
+// Choose the latest available frame while preserving absence when both inputs are absent.
 fn max_opt(a: Option<u64>, b: Option<u64>) -> Option<u64> {
     match (a, b) {
         (Some(a), Some(b)) => Some(a.max(b)),
@@ -111,6 +122,7 @@ mod tests {
     use serde_json::Value;
     use std::collections::BTreeMap;
 
+    // Construct two observations with a shared stable key for the duplicate-merging test.
     fn event(id: &str, frame: u64, severity: &str, count: Option<u64>) -> DiagnosticEvent {
         DiagnosticEvent {
             schema: None,
@@ -142,6 +154,7 @@ mod tests {
     }
 
     #[test]
+    // Verify that merging accumulates counts, keeps the stronger severity and spans both frames.
     fn merges_duplicate_events() {
         let events = vec![
             event("a", 10, "warn", Some(2)),

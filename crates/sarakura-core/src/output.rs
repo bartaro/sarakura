@@ -3,6 +3,8 @@ use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
 
+// Write the complete structured diagnostic document as pretty JSON, creating
+// parent directories and reporting serialization or write failures with context.
 pub fn write_ai_diagnostics(path: impl AsRef<Path>, doc: &AiDiagnosticsDocument) -> Result<()> {
     let path = path.as_ref();
     if let Some(parent) = path.parent() {
@@ -14,6 +16,7 @@ pub fn write_ai_diagnostics(path: impl AsRef<Path>, doc: &AiDiagnosticsDocument)
     Ok(())
 }
 
+// Write only the summary counts as pretty JSON for lightweight downstream consumers.
 pub fn write_diagnostic_summary(path: impl AsRef<Path>, doc: &AiDiagnosticsDocument) -> Result<()> {
     let path = path.as_ref();
     if let Some(parent) = path.parent() {
@@ -26,6 +29,8 @@ pub fn write_diagnostic_summary(path: impl AsRef<Path>, doc: &AiDiagnosticsDocum
     Ok(())
 }
 
+// Render an English Markdown repair brief with evidence, candidate targets and
+// retest conditions. This creates a report; it does not apply patches or execute tests.
 pub fn write_repair_prompt(path: impl AsRef<Path>, doc: &AiDiagnosticsDocument) -> Result<()> {
     let path = path.as_ref();
     if let Some(parent) = path.parent() {
@@ -65,6 +70,9 @@ pub fn write_repair_prompt(path: impl AsRef<Path>, doc: &AiDiagnosticsDocument) 
     );
 
     out.push_str("## Diagnostics\n\n");
+    // Preserve diagnostic order. Many absent labels render as unknown; a present
+    // file with no line renders line 0 as a display fallback, not a real location.
+    // Embedded labels/hints are interpolated without general Markdown escaping.
     for diag in &doc.diagnostics {
         out.push_str(&format!(
             "### {} `{}`\n\n",

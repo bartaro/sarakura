@@ -6,10 +6,14 @@ use sarakura_core::{
 
 const GB_CATALOG_JSON: &str = include_str!("gb_catalog.json");
 
+// Parse the embedded GB rule catalog on each call and return any JSON error.
+// No emulator connection or external catalog file is required.
 pub fn gb_catalog() -> Result<Vec<sarakura_core::DiagnosticRule>> {
     load_catalog_from_str(GB_CATALOG_JSON)
 }
 
+// Analyze supplied GB metadata and events with the default filters and label
+// policy. Frames records the requested budget; this function runs no ROM.
 pub fn analyze_gb(
     metadata: BuildMetadata,
     events: Vec<DiagnosticEvent>,
@@ -28,6 +32,8 @@ pub fn analyze_gb(
     )
 }
 
+// Force the GB platform even if the supplied options name another platform,
+// load its built-in catalog, and delegate aggregation and reporting to the core.
 pub fn analyze_gb_with_options(
     metadata: BuildMetadata,
     events: Vec<DiagnosticEvent>,
@@ -48,6 +54,8 @@ mod tests {
     use super::*;
 
     #[test]
+    // Check the expected GB rule count and selected IDs after parsing the catalog.
+    // This does not exercise the emulator emitters for those rules.
     fn catalog_has_50_rules() {
         let rules = gb_catalog().unwrap();
         assert_eq!(rules.len(), 50);

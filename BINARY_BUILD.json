@@ -1,17 +1,19 @@
 {
-  "built_on": "2026-09-13",
+  "built_on": "2026-09-14",
   "licensor": "DAISUKE OBA",
-  "source_revision_before_packaging": "53c0f3a8218e3918614b4c7efa75a12fa636d94a",
+  "source_revision_before_packaging": "6dc0c4fa82003e3c95f6140ad2fef700b4d84e08",
+  "source_state": "Uncommitted reviewed source; source_inputs hashes identify this build.",
   "target": "x86_64-pc-windows-msvc",
   "configuration": "Release",
   "rustflags": "-C target-feature=+crt-static",
   "build_command": ".\\scripts\\build.ps1 -Offline",
+  "build_exit_code": 0,
   "cargo_lock_sha256": "0edc74e6e7a6ea2e2b2598876801da1417c87455ee694af38864e4d526122622",
   "rustc": "rustc 1.93.1 (01f6ddf75 2026-02-11)\nbinary: rustc\ncommit-hash: 01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\ncommit-date: 2026-02-11\nhost: x86_64-pc-windows-msvc\nrelease: 1.93.1\nLLVM version: 21.1.8",
   "binary": {
     "path": "sarakura.exe",
-    "bytes": 2546688,
-    "sha256": "bed33a7b48df60d978f4ebd4591cbf971636c8dc751115bf2a8e73ab9909109a",
+    "bytes": 2547200,
+    "sha256": "3cd07c46af9b78466fcf9b4ad90bc428bd67a70d2ee41e1523de22090dc8c156",
     "imported_system_dlls": [
       "api-ms-win-core-synch-l1-2-0.dll",
       "bcryptprimitives.dll",
@@ -34,11 +36,11 @@
     },
     {
       "path": "crates/sarakura-cli/src/main.rs",
-      "sha256": "677edb2dc47bf6dc34c972b72bb74142c60cd892ba9644fa5bb6ec4581bba807"
+      "sha256": "54788f09c9cc33e8dbb4b273e5ff67789385be5cbebaf9976190e1ec196ca5ae"
     },
     {
       "path": "crates/sarakura-cli/tests/cli_smoke.rs",
-      "sha256": "25d1ab22523af082a1c110bcb01d0789d760902dc06f47e2edaa6dd87012bec1"
+      "sha256": "de5f2f2fb14307308eb95cb5f094711fe37508278e979ad39702436fac74474c"
     },
     {
       "path": "crates/sarakura-core/Cargo.toml",
@@ -46,71 +48,71 @@
     },
     {
       "path": "crates/sarakura-core/src/analyze.rs",
-      "sha256": "6323b88231258656ac6889699d384f4d4e24e80519e0e014958a6f73f6a3dc50"
+      "sha256": "942c7aad5869a11435a28d334b041b0f700b805e8ec0aa7f706dfa838d503ca9"
     },
     {
       "path": "crates/sarakura-core/src/automation_plan.rs",
-      "sha256": "e7cbde65795c6b55ce77dd33245742b311b0ca93db1cdb0a8e5ff6bc8beda82a"
+      "sha256": "f61af5eacb70578ac2c5af9b2f85ef8a5d081f216448b32664fcf974de402496"
     },
     {
       "path": "crates/sarakura-core/src/baseline.rs",
-      "sha256": "4254ef8c8fbae231f325e22f63f5bade04d66010316b5c94db465a2ab8a2f703"
+      "sha256": "81ebbc30c571743ad6b75160405a51ad726ed0fc01c04c167ceaaaa71ac36f71"
     },
     {
       "path": "crates/sarakura-core/src/catalog.rs",
-      "sha256": "ace66c52ca6ae837ae2894540cc0416a8911433c5de52e99198b6427310661b1"
+      "sha256": "b889a988af53935d3b1dcaca8d818d76a3fa316951aeb7af11d6fcbfa7fafb08"
     },
     {
       "path": "crates/sarakura-core/src/ci.rs",
-      "sha256": "f8b5dbc98578d4ccea8f3d53ada37745aa016f48ccfd6caae4baeb3f5d98a361"
+      "sha256": "6fe3eef26979f783916c9de44ad4c227da9e5c82d3411e08c471b094eba32248"
     },
     {
       "path": "crates/sarakura-core/src/confidence.rs",
-      "sha256": "626e7fc933069e5fe6df2c406db30b7c0c09df23ecaeb05f91ac751907d6f58f"
+      "sha256": "39f24b4b8483d1404aa24f385484f26c69806e6306c1402c62401c80311ae0be"
     },
     {
       "path": "crates/sarakura-core/src/coverage.rs",
-      "sha256": "71d32ede56867c8334f09f71c9655e88ca62b10ed6a954514befbc3c94dfd6d8"
+      "sha256": "7cb57ec357be3cee0e6a06850580be455acbc70d3f9578e2c0fa084408b09480"
     },
     {
       "path": "crates/sarakura-core/src/event_loader.rs",
-      "sha256": "86cf4464319757e7471a039f6293563067759a91c2e402ca33d5bc8b4718c31c"
+      "sha256": "fda2176fa258eb2d6e0d41695c7632d02fa8bf45d170decaf2c2a756449a08b0"
     },
     {
       "path": "crates/sarakura-core/src/inspect.rs",
-      "sha256": "b7963b65ba011cd47816ba126b2ade98528d500ffb21aba733c2b14dc9955263"
+      "sha256": "6b50e95d01f70d68be43ac142c29a49ddf6b3646e266a4e770d47ba1e63cd810"
     },
     {
       "path": "crates/sarakura-core/src/lib.rs",
-      "sha256": "e6d9b216fa00c687f8834d53eb2e66069bcf2b0d5a084c0c4fd1975d8b9d087d"
+      "sha256": "347f3bf75a4badf78af30faea606258360ba137a9169dda00a74a5d37fc8ec94"
     },
     {
       "path": "crates/sarakura-core/src/metadata.rs",
-      "sha256": "93dcb43b73ce69024119eeaf7ea8af86f3c11bc88f6d2b82198dc70576db4092"
+      "sha256": "ffea19db6e22d0e9b905f8cb4c46dbacd4035c95853e638a2355fca392ee7009"
     },
     {
       "path": "crates/sarakura-core/src/model.rs",
-      "sha256": "12e065965a4a22130cdff1bc5e0fe156fe676423354f819896012b6c99b59ca6"
+      "sha256": "0647b7a152c6076094b6b6d51c96b919b30e50daddf6595a1524431a89e0d0e5"
     },
     {
       "path": "crates/sarakura-core/src/normalize.rs",
-      "sha256": "70c29b90e0c2e94482653d1f1c72f0014494b446f916345c6b4710c0017f3dd7"
+      "sha256": "ff62b5c053fc5c6bff4065340f8161ca119a126df57751c3b6d514c3dc43f665"
     },
     {
       "path": "crates/sarakura-core/src/output.rs",
-      "sha256": "39805a8ba14dabe18f90a432fb16c42d8cfec6b77aaa9d452d98826efa1dd533"
+      "sha256": "6cc7fa94c5fddfd6c545ced2f131b18e2b704bf5075622c89aee2f1492c66a54"
     },
     {
       "path": "crates/sarakura-core/src/packs.rs",
-      "sha256": "57886dde0dafea26939ce48d92b69cca30f368498449c46d516853d41057e925"
+      "sha256": "f75bc4bd73dd7983830e7e032c8734590a8cb47dc9d09315469cfd6da9916710"
     },
     {
       "path": "crates/sarakura-core/src/redaction.rs",
-      "sha256": "19dceb3a007130ec94a098adde9875e6b7c9f571954148905c2cb4b4eb051b5c"
+      "sha256": "aa9dcb0396b09ad2a61aedfb7a60ca40f4d22742e1ca44f28c58bfe04cb1e3b3"
     },
     {
       "path": "crates/sarakura-core/src/repair_plan.rs",
-      "sha256": "ab93c00b9436a5e46fe3642c1cd3ab6c07f71db588bce5ef11c3b122109a85a4"
+      "sha256": "66b0644a893c75a1a8d35f2b2dbc7b22751ceb98ab046be6fe3dc0a575405699"
     },
     {
       "path": "crates/sarakura-fc/Cargo.toml",
@@ -118,7 +120,7 @@
     },
     {
       "path": "crates/sarakura-fc/src/lib.rs",
-      "sha256": "8627fad5eb650a354a9e691e5471bce05a765ea2bf3c71d914e232a0048c61a5"
+      "sha256": "87a39cb735df29aec0e7272e37f6733282ee67a7429d2bda435800cd2accd954"
     },
     {
       "path": "crates/sarakura-gb/Cargo.toml",
@@ -126,7 +128,7 @@
     },
     {
       "path": "crates/sarakura-gb/src/lib.rs",
-      "sha256": "c83d6c8b89fe610e5c40b860ee5aa42617952b194def65f7909954fc0d849966"
+      "sha256": "53fef9a4ba0871c344d7aba309f596894c32218dce39c51d0a167f8126dbb20e"
     },
     {
       "path": "crates/sarakura-report/Cargo.toml",
@@ -134,7 +136,11 @@
     },
     {
       "path": "crates/sarakura-report/src/lib.rs",
-      "sha256": "c0b488a69e67e719d88945cfaf06c8dade23c10b87e94f00740deab9de34459c"
+      "sha256": "0fa92106c879aad66455523e10a6a6873ead1f47848c18f47f6e64db6ea11d16"
+    },
+    {
+      "path": "crates/sarakura-report/tests/html_evidence_refs.rs",
+      "sha256": "ac7cad3d9afaf71e416b3b5d5d1191404020c22959c98ee8cd836835084adc99"
     },
     {
       "path": "crates/sarakura-schema/Cargo.toml",
@@ -142,28 +148,37 @@
     },
     {
       "path": "crates/sarakura-schema/src/lib.rs",
-      "sha256": "6ffd1c8ccb86e6b8ca474ef2179a8323990b05c66c856a2438cd54b7fcfdb2db"
+      "sha256": "855f277245c2b2a9b1a3e4e24824df01daa866362f10e5e7d844c724fa01b3e2"
     }
   ],
   "checks": [
+    {
+      "check": "--version",
+      "exit_code": 0
+    },
     {
       "check": "--help",
       "exit_code": 0
     },
     {
-      "check": "gb English diagnostic reports",
+      "check": "gb English diagnostic reports and encoded evidence names",
       "built_in_rules": 50,
       "unmapped_events": 1,
       "passed": true,
-      "report_sha256": "8893d457d40f14081b2fdac08413752ad70dcc570e8408d192ab47888fd49619"
+      "strict_validation": true,
+      "bundled_html_matches": true,
+      "report_sha256": "864d888543974de4dd24d41fe18186dd6b998346da0f20854ed2e0a1ec8a5766"
     },
     {
-      "check": "fc English diagnostic reports",
+      "check": "fc English diagnostic reports and encoded evidence names",
       "built_in_rules": 74,
       "unmapped_events": 1,
       "passed": true,
-      "report_sha256": "b35aa1147694eed6dd1ad07fb843f65d7f7e3b2e5a6cb72ff694af73f71d06bf"
+      "strict_validation": true,
+      "bundled_html_matches": true,
+      "report_sha256": "124633a3a6ffd7f01d42954cfb26e8187616629fc9398c2c9a40e451db3f644e"
     }
   ],
-  "scope": "CLI-only distribution. GUI, C API DLL and Python extension binaries are excluded. These focused executable checks do not repeat all historical workspace tests or establish physical-hardware compatibility."
+  "source_changes": "English processing comments and HTML encoding of snapshot/trace display names.",
+  "scope": "Windows x64 CLI distribution. Executed synthetic GB/FC report generation and HTML/ZIP checks; no emulator or physical hardware execution is claimed."
 }

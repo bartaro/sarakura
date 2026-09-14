@@ -3,12 +3,15 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Keep separate severity gates for new keys and worsening existing keys.
 pub struct BaselineDeltaPolicy {
     pub fail_on_new: String,
     pub fail_on_regression: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+// Retain document-level totals alongside counts of compared representative
+// keys. They need not sum to the same value when a document has duplicate keys.
 pub struct BaselineDeltaSummary {
     pub baseline_total: usize,
     pub current_total: usize,
@@ -23,6 +26,8 @@ pub struct BaselineDeltaSummary {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Pair the optional baseline/current observations for one comparison key.
+// Shared source/target labels come from current when present, otherwise baseline.
 pub struct BaselineDeltaItem {
     pub key: String,
     pub diagnostic_type: String,
@@ -42,6 +47,8 @@ pub struct BaselineDeltaItem {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+// Store mutually exclusive key classifications and the selected CI-gate result.
+// A passing policy is not independent evidence that the ROM is fault-free.
 pub struct BaselineDeltaReport {
     pub schema: String,
     pub schema_version: u32,
@@ -60,6 +67,10 @@ pub struct BaselineDeltaReport {
     pub message: String,
 }
 
+// Compare one representative per diagnostic/target/source key. Either severity
+// or count increasing takes precedence over any improvement in the other field.
+// Confidence affects representative selection but is not a regression metric.
+// Platform/build equivalence is not checked here; callers choose comparable runs.
 pub fn build_baseline_delta(
     baseline: &AiDiagnosticsDocument,
     current: &AiDiagnosticsDocument,
@@ -139,6 +150,8 @@ pub fn build_baseline_delta(
     sort_items(&mut regressed_diagnostics);
     sort_items(&mut improved_diagnostics);
 
+    // Copy the reported document totals while deriving delta totals from the
+    // classified keys. Unrecognized new severities fall into the informational count.
     let mut summary = BaselineDeltaSummary {
         baseline_total: baseline.summary.diagnostics_total,
         current_total: current.summary.diagnostics_total,
@@ -162,6 +175,8 @@ pub fn build_baseline_delta(
         }
     }
 
+    // Gate new and regressed keys independently using their current severity; a
+    // count increase alone can fail the regression gate if that severity qualifies.
     let new_gate_failed = new_diagnostics
         .iter()
         .any(|item| severity_meets(item.current_severity.as_deref(), &fail_on_new));
@@ -208,6 +223,9 @@ pub fn build_baseline_delta(
     }
 }
 
+// Render the comparison as English Markdown with summary and category tables.
+// Embedded labels are interpolated directly, so callers should not assume
+// arbitrary source names have been escaped for Markdown table syntax.
 pub fn render_baseline_delta_markdown(report: &BaselineDeltaReport) -> String {
     let mut out = String::new();
     out.push_str("# SARAKURA baseline delta\n\n");
@@ -277,6 +295,8 @@ pub fn render_baseline_delta_markdown(report: &BaselineDeltaReport) -> String {
     out
 }
 
+// Emit an English empty-section marker or one row per item, preferring current
+// severity/count and falling back to baseline values for resolved diagnostics.
 fn push_section(out: &mut String, title: &str, items: &[BaselineDeltaItem]) {
     out.push_str(&format!("## {}\n\n", title));
     if items.is_empty() {
@@ -309,6 +329,9 @@ fn push_section(out: &mut String, title: &str, items: &[BaselineDeltaItem]) {
     out.push_str("\n");
 }
 
+// Group references by comparison key without combining counts. Later candidates
+// replace the representative when any tracked selection metric is higher, so
+// input order can matter when metrics disagree.
 fn diagnostic_map<'a>(diagnostics: &'a [AiDiagnostic]) -> BTreeMap<String, &'a AiDiagnostic> {
     let mut map: BTreeMap<String, &'a AiDiagnostic> = BTreeMap::new();
     for diag in diagnostics {
@@ -326,12 +349,17 @@ fn diagnostic_map<'a>(diagnostics: &'a [AiDiagnostic]) -> BTreeMap<String, &'a A
     map
 }
 
+// Select a candidate when severity, count OR confidence increases. This is not
+// a lexicographic ranking: a higher count can replace a higher-severity item.
 fn better_representative(existing: &AiDiagnostic, candidate: &AiDiagnostic) -> bool {
     severity_rank(&candidate.severity) > severity_rank(&existing.severity)
         || candidate.event_count > existing.event_count
         || candidate.confidence > existing.confidence
 }
 
+// Join diagnostic type, target type, primary source file/line and operation ID.
+// Missing values use question marks; IDs, confidence and event counts are omitted.
+// Separators are not escaped, so this is a conventional label key, not a hash.
 fn diagnostic_key(diag: &AiDiagnostic) -> String {
     format!(
         "{}|target={}|file={}|line={}|op={}",
@@ -346,6 +374,8 @@ fn diagnostic_key(diag: &AiDiagnostic) -> String {
     )
 }
 
+// Capture both sides while taking shared labels from current if available.
+// At least one side must be supplied; the internal invariant is enforced by expect.
 fn delta_item(
     key: &str,
     baseline: Option<&AiDiagnostic>,
@@ -374,6 +404,8 @@ fn delta_item(
     }
 }
 
+// Sort by descending effective severity and count, then ascending diagnostic
+// type. Stable sorting preserves the prior key order when these fields tie.
 fn sort_items(items: &mut [BaselineDeltaItem]) {
     items.sort_by(|a, b| {
         item_severity_rank(b)
@@ -383,6 +415,8 @@ fn sort_items(items: &mut [BaselineDeltaItem]) {
     });
 }
 
+// Prefer current severity; use baseline only for absent current observations.
+// Missing and unrecognized values receive rank zero.
 fn item_severity_rank(item: &BaselineDeltaItem) -> u8 {
     item.current_severity
         .as_deref()
@@ -391,12 +425,15 @@ fn item_severity_rank(item: &BaselineDeltaItem) -> u8 {
         .unwrap_or(0)
 }
 
+// Prefer the current count even when zero, then baseline, then zero if absent.
 fn item_event_count(item: &BaselineDeltaItem) -> u64 {
     item.current_event_count
         .or(item.baseline_event_count)
         .unwrap_or(0)
 }
 
+// Disable a zero-ranked threshold; otherwise require an available severity
+// whose normalized rank reaches the selected gate.
 fn severity_meets(severity: Option<&str>, threshold: &str) -> bool {
     let threshold_rank = severity_rank(threshold);
     if threshold_rank == 0 {
@@ -405,6 +442,7 @@ fn severity_meets(severity: Option<&str>, threshold: &str) -> bool {
     severity.map(severity_rank).unwrap_or(0) >= threshold_rank
 }
 
+// Order error above warn above info; never and unrecognized values rank zero.
 fn severity_rank(severity: &str) -> u8 {
     match normalize_severity(severity).as_str() {
         "error" => 3,
@@ -414,6 +452,8 @@ fn severity_rank(severity: &str) -> u8 {
     }
 }
 
+// Normalize the aliases supported by baseline comparison while retaining
+// unrecognized lowercased input. No whitespace trimming is applied.
 fn normalize_severity(severity: &str) -> String {
     match severity.to_ascii_lowercase().as_str() {
         "error" | "err" => "error".to_string(),
@@ -424,6 +464,8 @@ fn normalize_severity(severity: &str) -> String {
     }
 }
 
+// Normalize CI policy aliases and default an unknown policy to error.
+// Never/none disables the gate, while info/all includes all recognized severities.
 fn normalize_fail_on(value: &str) -> String {
     match value.to_ascii_lowercase().as_str() {
         "never" | "none" => "never".to_string(),
@@ -441,6 +483,8 @@ mod tests {
         DiagnosticSummary, RepairTarget, RetestCondition, RomSummary, RunSummary, SourceMapping,
     };
 
+    // Build a small comparison document and derive its summary from the supplied
+    // diagnostics; the metadata labels are synthetic test values.
     fn sample_doc(diagnostics: Vec<AiDiagnostic>) -> AiDiagnosticsDocument {
         let mut summary = DiagnosticSummary::default();
         summary.diagnostics_total = diagnostics.len();
@@ -479,6 +523,8 @@ mod tests {
         }
     }
 
+    // Create one mapped diagnostic with a fixed comparison target and configurable
+    // identity, severity and count for baseline-comparison tests.
     fn diag(id: &str, event_type: &str, severity: &str, count: u64) -> AiDiagnostic {
         AiDiagnostic {
             diagnostic_id: id.to_string(),
@@ -528,6 +574,8 @@ mod tests {
     }
 
     #[test]
+    // Exercise the new-error case against an empty baseline and assert the failing
+    // gate. Despite the test name, this fixture does not exercise a resolved item.
     fn delta_reports_new_and_resolved() {
         let baseline = sample_doc(vec![]);
         let current = sample_doc(vec![diag(
@@ -542,6 +590,8 @@ mod tests {
     }
 
     #[test]
+    // Confirm changing only the diagnostic ID preserves the comparison key and
+    // yields a passing, persisting item that is included in the Markdown report.
     fn delta_reports_pass_for_same_document() {
         let baseline = sample_doc(vec![diag(
             "diag_1",

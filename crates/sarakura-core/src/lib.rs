@@ -1,3 +1,5 @@
+// Core analysis modules operate on supplied observations and metadata.
+// Public re-exports below expose report/plan construction without emulator execution.
 pub mod analyze;
 pub mod automation_plan;
 pub mod baseline;
@@ -15,6 +17,8 @@ pub mod packs;
 pub mod redaction;
 pub mod repair_plan;
 
+// Convenience entry points for consumers; shared data structures are re-exported
+// from model while specialized modules remain available by module path.
 pub use analyze::{analyze, AnalyzeInput};
 pub use automation_plan::{
     build_automation_plan, build_automation_plan_with_capabilities, render_automation_plan_markdown,
