@@ -2,7 +2,7 @@
 
 [English](README.md#english) | [日本語](README.md#japanese) | **简体中文**
 
-**[打开SARAKURA简体中文手册](https://bartaro.github.io/kitaq-docs/zh-CN/sarakura.html)**
+**打开SARAKURA简体中文手册**
 
 分析KITAQGB/KOKURA和KITAQFC/KUROSAKI的诊断数据，并生成英文报告。
 
@@ -31,7 +31,7 @@
 
 ## 手册与许可证
 
-- [简体中文手册](https://bartaro.github.io/kitaq-docs/zh-CN/sarakura.html)
+- 简体中文手册
 - [英文手册](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [日文手册](https://bartaro.github.io/kitaq-docs/sarakura.html)
 - [供离线阅读的手册源码](https://github.com/bartaro/kitaq-docs)
 - [许可证](LICENSE) / [日文参考译文](LICENSE.ja)

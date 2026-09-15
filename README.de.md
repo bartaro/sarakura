@@ -2,7 +2,7 @@
 
 [English](README.md#english) | [日本語](README.md#japanese) | **Deutsch**
 
-**[Deutsches Handbuch zu SARAKURA öffnen](https://bartaro.github.io/kitaq-docs/de/sarakura.html)**
+**Deutsches Handbuch zu SARAKURA öffnen**
 
 Werkzeug zur Diagnoseauswertung und Erstellung englischsprachiger Berichte für KITAQGB/KOKURA und KITAQFC/KUROSAKI.
 
@@ -31,7 +31,7 @@ Verwenden Sie eine aktuelle stabile Rust-Toolchain. Installieren Sie unter Windo
 
 ## Handbücher und Lizenzen
 
-- [Deutsches Handbuch](https://bartaro.github.io/kitaq-docs/de/sarakura.html)
+- Deutsches Handbuch
 - [Englisches Handbuch](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [Japanisches Handbuch](https://bartaro.github.io/kitaq-docs/sarakura.html)
 - [Handbuchquellen zum Offline-Lesen](https://github.com/bartaro/kitaq-docs)
 - [Lizenz](LICENSE) / [Japanische Übersetzung zur Orientierung](LICENSE.ja)

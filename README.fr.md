@@ -2,7 +2,7 @@
 
 [English](README.md#english) | [日本語](README.md#japanese) | **Français**
 
-**[Ouvrir le manuel de SARAKURA en français](https://bartaro.github.io/kitaq-docs/fr/sarakura.html)**
+**Ouvrir le manuel de SARAKURA en français**
 
 Analyse des diagnostics et production de rapports en anglais pour KITAQGB/KOKURA et KITAQFC/KUROSAKI.
 
@@ -31,7 +31,7 @@ Pour recompiler, utilisez une version stable actuelle de Rust. Sous Windows, ins
 
 ## Manuels et licences
 
-- [Manuel en français](https://bartaro.github.io/kitaq-docs/fr/sarakura.html)
+- Manuel en français
 - [Manuel en anglais](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [Manuel en japonais](https://bartaro.github.io/kitaq-docs/sarakura.html)
 - [Sources du manuel pour lecture hors connexion](https://github.com/bartaro/kitaq-docs)
 - [Licence](LICENSE) / [Traduction japonaise à titre de référence](LICENSE.ja)

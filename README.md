@@ -5,17 +5,10 @@
 | --- | --- |
 | English | [SARAKURA](https://bartaro.github.io/kitaq-docs/en/sarakura.html) |
 | 日本語 | [SARAKURA](https://bartaro.github.io/kitaq-docs/sarakura.html) |
-| 한국어 | [SARAKURA](https://bartaro.github.io/kitaq-docs/ko/sarakura.html) |
-| 简体中文 | [SARAKURA](https://bartaro.github.io/kitaq-docs/zh-CN/sarakura.html) |
-| 繁體中文 | [SARAKURA](https://bartaro.github.io/kitaq-docs/zh-TW/sarakura.html) |
-| Español | [SARAKURA](https://bartaro.github.io/kitaq-docs/es/sarakura.html) |
-| Português (Brasil) | [SARAKURA](https://bartaro.github.io/kitaq-docs/pt/sarakura.html) |
-| Français | [SARAKURA](https://bartaro.github.io/kitaq-docs/fr/sarakura.html) |
-| Deutsch | [SARAKURA](https://bartaro.github.io/kitaq-docs/de/sarakura.html) |
 <!-- manual-language-links:end -->
 
 
-[English](#english) | [日本語](#japanese) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
+[English](#english) | [日本語](#japanese)
 
 <a name="english"></a>
 

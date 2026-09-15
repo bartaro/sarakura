@@ -2,7 +2,7 @@
 
 [English](README.md#english) | [日本語](README.md#japanese) | **한국어**
 
-**[SARAKURA 한국어 설명서 열기](https://bartaro.github.io/kitaq-docs/ko/sarakura.html)**
+**SARAKURA 한국어 설명서 열기**
 
 KITAQGB/KOKURA와 KITAQFC/KUROSAKI의 진단 데이터를 분석하고 영어 보고서를 생성하는 도구입니다.
 
@@ -31,7 +31,7 @@ KITAQGB/KOKURA와 KITAQFC/KUROSAKI의 진단 데이터를 분석하고 영어 �
 
 ## 설명서와 라이선스
 
-- [한국어 설명서](https://bartaro.github.io/kitaq-docs/ko/sarakura.html)
+- 한국어 설명서
 - [영어 설명서](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [일본어 설명서](https://bartaro.github.io/kitaq-docs/sarakura.html)
 - [오프라인 열람용 설명서 소스](https://github.com/bartaro/kitaq-docs)
 - [라이선스](LICENSE) / [일본어 참고 번역](LICENSE.ja)
