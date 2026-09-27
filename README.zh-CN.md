@@ -2,7 +2,7 @@
 
 [English](README.md#english) | [日本語](README.md#japanese) | **简体中文**
 
-**打开SARAKURA简体中文手册**
+[SARAKURA 简体中文手册](https://bartaro.github.io/kitaq-docs/zh-CN/sarakura.html)
 
 分析KITAQGB/KOKURA和KITAQFC/KUROSAKI的诊断数据，并生成英文报告。
 
@@ -16,7 +16,7 @@
 .\sarakura.exe --help
 ```
 
-如需只重新构建这个命令行工具，请运行 `.\scripts\build.ps1`，必要时添加 `-Offline`。脚本会将可执行文件复制到仓库根目录。本次可执行文件发布不包含图形界面、Python扩展模块或C API DLL。详情请参阅[二进制构建记录](BINARY_BUILD.json)和[二进制依赖许可声明](BINARY_NOTICES.md)。
+如需只重新构建这个命令行工具，请运行 `.\scripts\build.ps1`，必要时添加 `-Offline`。脚本会将可执行文件复制到仓库根目录。详情请参阅[二进制构建记录](BINARY_BUILD.json)和[二进制依赖许可声明](BINARY_NOTICES.md)。
 
 项目自有代码的许可方为 **DAISUKE OBA**，采用MIT许可证。再分发时请一并提供 `LICENSE`、`LICENSE.ja`、`BINARY_NOTICES.md` 和 `licenses/` 目录。第三方库仍适用各自权利人的许可条件。
 
@@ -31,7 +31,7 @@
 
 ## 手册与许可证
 
-- 简体中文手册
+- [简体中文手册](https://bartaro.github.io/kitaq-docs/zh-CN/sarakura.html)
 - [英文手册](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [日文手册](https://bartaro.github.io/kitaq-docs/sarakura.html)
 - [供离线阅读的手册源码](https://github.com/bartaro/kitaq-docs)
 - [许可证](LICENSE) / [日文参考译文](LICENSE.ja)

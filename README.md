@@ -5,10 +5,11 @@
 | --- | --- |
 | English | [SARAKURA](https://bartaro.github.io/kitaq-docs/en/sarakura.html) |
 | 日本語 | [SARAKURA](https://bartaro.github.io/kitaq-docs/sarakura.html) |
+| 简体中文 | [SARAKURA](https://bartaro.github.io/kitaq-docs/zh-CN/sarakura.html) |
 <!-- manual-language-links:end -->
 
 
-[English](#english) | [日本語](#japanese)
+[English](#english) | [日本語](#japanese) | [简体中文](README.zh-CN.md)
 
 <a name="english"></a>
 
