@@ -1,8 +1,10 @@
 # SARAKURA
 
-[English](README.md#english) | [日本語](README.md#japanese) | **Deutsch**
+<!-- readme-language-links:start -->
+[English](README.md#english) | [日本語](README.md#japanese) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Français](README.fr.md) | [Español](README.es.md) | **Deutsch**
+<!-- readme-language-links:end -->
 
-**Deutsches Handbuch zu SARAKURA öffnen**
+**[SARAKURA · HTML-Handbuch](https://bartaro.github.io/kitaq-docs/de/sarakura.html)**
 
 Werkzeug zur Diagnoseauswertung und Erstellung englischsprachiger Berichte für KITAQGB/KOKURA und KITAQFC/KUROSAKI.
 
@@ -31,9 +33,9 @@ Verwenden Sie eine aktuelle stabile Rust-Toolchain. Installieren Sie unter Windo
 
 ## Handbücher und Lizenzen
 
-- Deutsches Handbuch
+- [SARAKURA · HTML-Handbuch](https://bartaro.github.io/kitaq-docs/de/sarakura.html)
 - [Englisches Handbuch](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [Japanisches Handbuch](https://bartaro.github.io/kitaq-docs/sarakura.html)
 - [Handbuchquellen zum Offline-Lesen](https://github.com/bartaro/kitaq-docs)
 - [Lizenz](LICENSE) / [Japanische Übersetzung zur Orientierung](LICENSE.ja)
 
-Die Projektlizenz ersetzt keine Bedingungen Dritter für Abhängigkeiten, Logos oder Marken. Bewahren Sie bei einer Weiterverteilung die beiliegenden Hinweise auf.
+Die Projektlizenz ersetzt keine Bedingungen Dritter für Abhängigkeiten, Logos oder Marken. Behalten Sie bei einer Weitergabe die beigefügten Hinweise bei.

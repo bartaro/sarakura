@@ -1,8 +1,10 @@
 # SARAKURA
 
-[English](README.md#english) | [日本語](README.md#japanese) | **한국어**
+<!-- readme-language-links:start -->
+[English](README.md#english) | [日本語](README.md#japanese) | **한국어** | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Français](README.fr.md) | [Español](README.es.md) | [Deutsch](README.de.md)
+<!-- readme-language-links:end -->
 
-**SARAKURA 한국어 설명서 열기**
+**[SARAKURA · HTML 설명서](https://bartaro.github.io/kitaq-docs/ko/sarakura.html)**
 
 KITAQGB/KOKURA와 KITAQFC/KUROSAKI의 진단 데이터를 분석하고 영어 보고서를 생성하는 도구입니다.
 
@@ -31,9 +33,9 @@ KITAQGB/KOKURA와 KITAQFC/KUROSAKI의 진단 데이터를 분석하고 영어 �
 
 ## 설명서와 라이선스
 
-- 한국어 설명서
+- [SARAKURA · HTML 설명서](https://bartaro.github.io/kitaq-docs/ko/sarakura.html)
 - [영어 설명서](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [일본어 설명서](https://bartaro.github.io/kitaq-docs/sarakura.html)
 - [오프라인 열람용 설명서 소스](https://github.com/bartaro/kitaq-docs)
 - [라이선스](LICENSE) / [일본어 참고 번역](LICENSE.ja)
 
-프로젝트 라이선스가 글꼴, 의존 라이브러리, 로고, 상표에 관한 제3자의 조건을 대신하지는 않습니다. 재배포할 때 동봉된 고지를 유지하세요.
+프로젝트 라이선스가 외부 의존성, 로고, 상표에 관한 제3자의 조건을 대신하지는 않습니다. 재배포할 때 동봉된 고지를 유지하세요.

@@ -1,8 +1,10 @@
 # SARAKURA
 
-[English](README.md#english) | [日本語](README.md#japanese) | **繁體中文**
+<!-- readme-language-links:start -->
+[English](README.md#english) | [日本語](README.md#japanese) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md) | **繁體中文** | [Français](README.fr.md) | [Español](README.es.md) | [Deutsch](README.de.md)
+<!-- readme-language-links:end -->
 
-**開啟 SARAKURA 繁體中文手冊**
+**[SARAKURA · HTML 手冊](https://bartaro.github.io/kitaq-docs/zh-TW/sarakura.html)**
 
 分析 KITAQGB／KOKURA 與 KITAQFC／KUROSAKI 的診斷資料，並產生英文報告。
 
@@ -31,9 +33,9 @@
 
 ## 手冊與授權
 
-- 繁體中文手冊
+- [SARAKURA · HTML 手冊](https://bartaro.github.io/kitaq-docs/zh-TW/sarakura.html)
 - [英文手冊](https://bartaro.github.io/kitaq-docs/en/sarakura.html)／[日文手冊](https://bartaro.github.io/kitaq-docs/sarakura.html)
 - [可供離線閱讀的手冊原始檔](https://github.com/bartaro/kitaq-docs)
 - [授權條款](LICENSE)／[日文參考譯文](LICENSE.ja)
 
-本專案的授權不取代第三方對字型、相依套件、標誌或商標訂定的條件。再散布時，請一併保留隨附聲明。
+專案授權不會取代第三方相依元件、標誌或商標的使用條件。重新散布時請保留隨附聲明。

@@ -1,8 +1,10 @@
 # SARAKURA
 
-[English](README.md#english) | [日本語](README.md#japanese) | **Español**
+<!-- readme-language-links:start -->
+[English](README.md#english) | [日本語](README.md#japanese) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Français](README.fr.md) | **Español** | [Deutsch](README.de.md)
+<!-- readme-language-links:end -->
 
-**Abrir el manual de SARAKURA en español**
+**[SARAKURA · Manual HTML](https://bartaro.github.io/kitaq-docs/es/sarakura.html)**
 
 Analiza los diagnósticos de KITAQGB/KOKURA y KITAQFC/KUROSAKI y genera informes en inglés.
 
@@ -31,9 +33,9 @@ Para recompilar, utilice una versión estable reciente de Rust. En Windows tambi
 
 ## Manuales y licencias
 
-- Manual en español
+- [SARAKURA · Manual HTML](https://bartaro.github.io/kitaq-docs/es/sarakura.html)
 - [Manual en inglés](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [Manual en japonés](https://bartaro.github.io/kitaq-docs/sarakura.html)
 - [Archivos del manual para consultarlo sin conexión](https://github.com/bartaro/kitaq-docs)
 - [Licencia](LICENSE) / [Traducción japonesa de referencia](LICENSE.ja)
 
-La licencia del proyecto no sustituye las condiciones de terceros sobre tipografías, dependencias, logotipos o marcas. Conserve los avisos adjuntos al redistribuir el software.
+La licencia del proyecto no sustituye las condiciones de terceros relativas a dependencias, logotipos o marcas. Conserva los avisos adjuntos al redistribuir.
