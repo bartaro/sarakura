@@ -39,3 +39,28 @@ KITAQGB/KOKURA와 KITAQFC/KUROSAKI의 진단 데이터를 분석하고 영어 �
 - [라이선스](LICENSE) / [일본어 참고 번역](LICENSE.ja)
 
 프로젝트 라이선스가 외부 의존성, 로고, 상표에 관한 제3자의 조건을 대신하지는 않습니다. 재배포할 때 동봉된 고지를 유지하세요.
+
+
+<!-- native-platform-binaries-20261004-ko -->
+### 빌드된 Linux 및 macOS CLI
+
+GitHub Actions에서 실행을 검증한 CLI 파일은 아래 폴더에 있습니다. CLI 실행에는 Rust, Python, .NET이 필요하지 않습니다. Linux 빌드는 x86_64/glibc용이며, macOS에서는 CPU에 맞는 버전을 선택하세요.
+
+| OS / CPU | CLI |
+| --- | --- |
+| Linux x86_64 (glibc) | [bin/linux-x86_64/sarakura](bin/linux-x86_64/sarakura) |
+| macOS ARM64 | [bin/macos-arm64/sarakura](bin/macos-arm64/sarakura) |
+| macOS Intel | [bin/macos-x86_64/sarakura](bin/macos-x86_64/sarakura) |
+
+```sh
+chmod +x bin/linux-x86_64/sarakura
+./bin/linux-x86_64/sarakura --help
+
+chmod +x bin/macos-arm64/sarakura
+./bin/macos-arm64/sarakura --help
+
+chmod +x bin/macos-x86_64/sarakura
+./bin/macos-x86_64/sarakura --help
+```
+
+저장소 루트에서 명령을 실행하세요. 재배포할 때는 LICENSE, LICENSE.ja, BINARY_NOTICES.md, licenses/를 유지하세요. NATIVE_BINARIES.json에는 해시, 의존성, 소스 리비전, 네이티브 실행 검증 기록이 있습니다.

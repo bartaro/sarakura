@@ -103,3 +103,53 @@ KITAQGB/KOKURAおよびKITAQFC/KUROSAKI向けの診断解析と英語レポー�
 - [ライセンス英語原文](LICENSE) / [日本語参考訳](LICENSE.ja)
 
 プロジェクトのライセンスは、第三者のフォント、依存ライブラリ、ロゴ、商標に関する条件を置き換えるものではありません。再配布時は付属の権利表記も保持してください。
+
+
+<!-- native-platform-binaries-20261004-en -->
+### Prebuilt Linux and macOS CLI
+
+Native CLI files verified in GitHub Actions are available in the folders below. Rust, Python and .NET are not required to run the CLI. The Linux build targets x86_64/glibc; choose the matching CPU for macOS.
+
+| OS / CPU | CLI |
+| --- | --- |
+| Linux x86_64 (glibc) | [bin/linux-x86_64/sarakura](bin/linux-x86_64/sarakura) |
+| macOS ARM64 | [bin/macos-arm64/sarakura](bin/macos-arm64/sarakura) |
+| macOS Intel | [bin/macos-x86_64/sarakura](bin/macos-x86_64/sarakura) |
+
+```sh
+chmod +x bin/linux-x86_64/sarakura
+./bin/linux-x86_64/sarakura --help
+
+chmod +x bin/macos-arm64/sarakura
+./bin/macos-arm64/sarakura --help
+
+chmod +x bin/macos-x86_64/sarakura
+./bin/macos-x86_64/sarakura --help
+```
+
+Run the commands from the repository root. For redistribution, retain LICENSE, LICENSE.ja, BINARY_NOTICES.md and licenses/. NATIVE_BINARIES.json records hashes, dependencies, source revisions and native execution checks.
+
+
+<!-- native-platform-binaries-20261004-ja -->
+### ビルド済みLinux・macOS CLI
+
+GitHub Actionsで実行検証したCLIを下記フォルダに配置しています。CLIの実行にRust・Python・.NETは不要です。Linux版はx86_64/glibc向けです。macOSではCPUに合う版を選んでください。
+
+| OS / CPU | CLI |
+| --- | --- |
+| Linux x86_64 (glibc) | [bin/linux-x86_64/sarakura](bin/linux-x86_64/sarakura) |
+| macOS ARM64 | [bin/macos-arm64/sarakura](bin/macos-arm64/sarakura) |
+| macOS Intel | [bin/macos-x86_64/sarakura](bin/macos-x86_64/sarakura) |
+
+```sh
+chmod +x bin/linux-x86_64/sarakura
+./bin/linux-x86_64/sarakura --help
+
+chmod +x bin/macos-arm64/sarakura
+./bin/macos-arm64/sarakura --help
+
+chmod +x bin/macos-x86_64/sarakura
+./bin/macos-x86_64/sarakura --help
+```
+
+コマンドはリポジトリ直下で実行します。再配布時はLICENSE、LICENSE.ja、BINARY_NOTICES.md、licenses/も保持してください。NATIVE_BINARIES.jsonにハッシュ、依存物、ソースのリビジョン、ネイティブ実行検証の記録があります。

@@ -37,3 +37,28 @@ Para recompilar, use uma versão estável atual do Rust. No Windows, instale o V
 - [Licença](LICENSE) / [Tradução de referência em japonês](LICENSE.ja)
 
 A licença do projeto não substitui as condições de terceiros relativas a fontes de caracteres, dependências, logotipos ou marcas. Preserve os avisos incluídos ao redistribuir.
+
+
+<!-- native-platform-binaries-20261004-pt-BR -->
+### CLI pré-compiladas para Linux e macOS
+
+As CLI verificadas por execução no GitHub Actions estão nas pastas abaixo. Não é necessário instalar Rust, Python ou .NET para executá-las. A versão Linux é destinada a x86_64/glibc; no macOS, escolha a versão correspondente à CPU.
+
+| OS / CPU | CLI |
+| --- | --- |
+| Linux x86_64 (glibc) | [bin/linux-x86_64/sarakura](bin/linux-x86_64/sarakura) |
+| macOS ARM64 | [bin/macos-arm64/sarakura](bin/macos-arm64/sarakura) |
+| macOS Intel | [bin/macos-x86_64/sarakura](bin/macos-x86_64/sarakura) |
+
+```sh
+chmod +x bin/linux-x86_64/sarakura
+./bin/linux-x86_64/sarakura --help
+
+chmod +x bin/macos-arm64/sarakura
+./bin/macos-arm64/sarakura --help
+
+chmod +x bin/macos-x86_64/sarakura
+./bin/macos-x86_64/sarakura --help
+```
+
+Execute os comandos na raiz do repositório. Ao redistribuir os arquivos, mantenha LICENSE, LICENSE.ja, BINARY_NOTICES.md e licenses/. NATIVE_BINARIES.json contém hashes, dependências, revisões do código-fonte e resultados das verificações nativas.
