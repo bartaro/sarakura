@@ -153,3 +153,9 @@ chmod +x bin/macos-x86_64/sarakura
 ```
 
 コマンドはリポジトリ直下で実行します。再配布時はLICENSE、LICENSE.ja、BINARY_NOTICES.md、licenses/も保持してください。NATIVE_BINARIES.jsonにハッシュ、依存物、ソースのリビジョン、ネイティブ実行検証の記録があります。
+
+## FDS diagnostics (2026-11-02)
+
+FDS CRC errors and write-protection requests now map to dedicated FC catalog rules. See [FDS diagnostics](docs/fds-media-20261102.md).
+
+FDSのCRCエラーと書き込み保護要求に対応する専用診断を追加しました。

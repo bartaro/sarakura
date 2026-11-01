@@ -2584,5 +2584,63 @@
     "codex_tasks": [
       "Match the write to its scanline and function, then distinguish an intentional raster effect from an unintended write before proposing a patch."
     ]
+  },
+  {
+    "id": "FC_FDS_MEDIA_CRC_ERROR",
+    "event_type": "FDS_MEDIA_CRC_ERROR",
+    "phase": "MVP-1",
+    "severity": "warn",
+    "category": "FDS/Media",
+    "detection_condition": "The emulator observed fds media crc error.",
+    "required_metadata": [],
+    "event_fields": [
+      "frame",
+      "cpu_cycle",
+      "pc",
+      "addr",
+      "value"
+    ],
+    "repair_target_candidates": [
+      "disk_io",
+      "disk_image",
+      "save_backend"
+    ],
+    "safe_patch_hint": "Verify the disk block stream and image integrity. Preserve the original disk image; malformed or protected formats may need an explicitly supported loader.",
+    "fixtures": {
+      "red": "fds_media_errors",
+      "green": "fds_bios_boot"
+    },
+    "codex_tasks": [
+      "Retest with the same BIOS and disk hashes and retain the observed I/O evidence."
+    ]
+  },
+  {
+    "id": "FC_FDS_MEDIA_WRITE_PROTECTED",
+    "event_type": "FDS_MEDIA_WRITE_PROTECTED",
+    "phase": "MVP-1",
+    "severity": "warn",
+    "category": "FDS/Media",
+    "detection_condition": "The emulator observed fds media write protected.",
+    "required_metadata": [],
+    "event_fields": [
+      "frame",
+      "cpu_cycle",
+      "pc",
+      "addr",
+      "value"
+    ],
+    "repair_target_candidates": [
+      "disk_io",
+      "disk_image",
+      "save_backend"
+    ],
+    "safe_patch_hint": "The attached FDS media is read-only. Use a supported writable-media workflow for saves; do not overwrite the original image implicitly.",
+    "fixtures": {
+      "red": "fds_media_errors",
+      "green": "fds_bios_boot"
+    },
+    "codex_tasks": [
+      "Retest with the same BIOS and disk hashes and retain the observed I/O evidence."
+    ]
   }
 ]

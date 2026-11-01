@@ -60,7 +60,7 @@ mod tests {
     // including the PPU write-risk mapping. Emitter behavior is not tested here.
     fn catalog_has_surom_rules() {
         let rules = fc_catalog().unwrap();
-        assert_eq!(rules.len(), 74);
+        assert_eq!(rules.len(), 76);
         assert!(rules.iter().any(|r| r.id == "FCD001"));
         assert!(rules.iter().any(|r| r.id == "FCD063"));
         assert!(rules.iter().any(|r| r.id == "FCD064" && r.event_type == "PPU_REGISTER_WRITE_RISK"));
