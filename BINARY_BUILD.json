@@ -1,26 +1,8 @@
 {
-  "built_on": "2026-09-14",
+  "built_on": "2026-11-01",
   "licensor": "DAISUKE OBA",
-  "source_revision_before_packaging": "6dc0c4fa82003e3c95f6140ad2fef700b4d84e08",
-  "source_state": "Uncommitted reviewed source; source_inputs hashes identify this build.",
-  "target": "x86_64-pc-windows-msvc",
   "configuration": "Release",
-  "rustflags": "-C target-feature=+crt-static",
-  "build_command": ".\\scripts\\build.ps1 -Offline",
-  "build_exit_code": 0,
-  "cargo_lock_sha256": "0edc74e6e7a6ea2e2b2598876801da1417c87455ee694af38864e4d526122622",
-  "rustc": "rustc 1.93.1 (01f6ddf75 2026-02-11)\nbinary: rustc\ncommit-hash: 01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\ncommit-date: 2026-02-11\nhost: x86_64-pc-windows-msvc\nrelease: 1.93.1\nLLVM version: 21.1.8",
-  "binary": {
-    "path": "sarakura.exe",
-    "bytes": 2547200,
-    "sha256": "3cd07c46af9b78466fcf9b4ad90bc428bd67a70d2ee41e1523de22090dc8c156",
-    "imported_system_dlls": [
-      "api-ms-win-core-synch-l1-2-0.dll",
-      "bcryptprimitives.dll",
-      "kernel32.dll",
-      "ntdll.dll"
-    ]
-  },
+  "source_revision_before_packaging": "de5afd73c7cd0620de617d36b5a5ed7827b5beab",
   "source_inputs": [
     {
       "path": "Cargo.lock",
@@ -119,12 +101,24 @@
       "sha256": "267383ff36821a6fae8cc9968eab4c2bef4d28baaf5a75de6a9c250d925ea013"
     },
     {
+      "path": "crates/sarakura-fc/src/fc_catalog.json",
+      "sha256": "aee9b35aa47e0a63cf1c9b6d1fe028d773987011eeef39c7607f52cbefd7a893"
+    },
+    {
       "path": "crates/sarakura-fc/src/lib.rs",
-      "sha256": "87a39cb735df29aec0e7272e37f6733282ee67a7429d2bda435800cd2accd954"
+      "sha256": "b234c2f33aac2c9c9aaa46b79b8d52486759376a4660ecbbab421b9ef11a0054"
+    },
+    {
+      "path": "crates/sarakura-fc/tests/fds_media.rs",
+      "sha256": "d583a387e939ba440819122829f3069d65e26450b44e217d53f744292bc320ef"
     },
     {
       "path": "crates/sarakura-gb/Cargo.toml",
       "sha256": "2861a91f761fb4a6be99a08fcfe606081441e62a3905740294acdc4f45004e13"
+    },
+    {
+      "path": "crates/sarakura-gb/src/gb_catalog.json",
+      "sha256": "1072912085c5913a188c01a7cead4f4a97db79da71b9eaf73227296b4605e9bf"
     },
     {
       "path": "crates/sarakura-gb/src/lib.rs",
@@ -151,34 +145,180 @@
       "sha256": "855f277245c2b2a9b1a3e4e24824df01daa866362f10e5e7d844c724fa01b3e2"
     }
   ],
+  "source_inventory_scope": "Public source commit verified on the native runner",
+  "build_command": [
+    "cargo",
+    "build",
+    "--locked",
+    "--release",
+    "-p",
+    "sarakura-cli"
+  ],
+  "build_exit_code": 0,
+  "target": "x86_64-pc-windows-msvc",
+  "rustflags": "-C target-feature=+crt-static",
+  "rustc": "rustc 1.93.1 (01f6ddf75 2026-02-11)\nbinary: rustc\ncommit-hash: 01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\ncommit-date: 2026-02-11\nhost: x86_64-pc-windows-msvc\nrelease: 1.93.1\nLLVM version: 21.1.8\n",
+  "cargo_lock_sha256": "0edc74e6e7a6ea2e2b2598876801da1417c87455ee694af38864e4d526122622",
+  "ci_run": "https://github.com/bartaro/sarakura/actions/runs/41359320870",
+  "validation_commit": "de5afd73c7cd0620de617d36b5a5ed7827b5beab",
+  "binary": {
+    "path": "sarakura.exe",
+    "bytes": 2546688,
+    "sha256": "1eacac90135a6607949cd15ca6d29051f6f29777c555a3128807ebe642e6af1d",
+    "imported_system_dlls": [
+      "kernel32.dll",
+      "api-ms-win-core-synch-l1-2-0.dll",
+      "bcryptprimitives.dll",
+      "KERNEL32.dll",
+      "ntdll.dll"
+    ]
+  },
   "checks": [
     {
-      "check": "--version",
-      "exit_code": 0
+      "name": "toolchain",
+      "arguments": [
+        "rustc",
+        "--version",
+        "--verbose"
+      ],
+      "exit_code": 0,
+      "test_count": 0
     },
     {
-      "check": "--help",
-      "exit_code": 0
+      "name": "tests",
+      "arguments": [
+        "cargo",
+        "test",
+        "--locked",
+        "--workspace",
+        "--all-targets"
+      ],
+      "exit_code": 0,
+      "test_count": 52
     },
     {
-      "check": "gb English diagnostic reports and encoded evidence names",
-      "built_in_rules": 50,
-      "unmapped_events": 1,
-      "passed": true,
-      "strict_validation": true,
-      "bundled_html_matches": true,
-      "report_sha256": "864d888543974de4dd24d41fe18186dd6b998346da0f20854ed2e0a1ec8a5766"
+      "name": "clippy",
+      "arguments": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--workspace",
+        "--all-targets"
+      ],
+      "exit_code": 0,
+      "test_count": 0
     },
     {
-      "check": "fc English diagnostic reports and encoded evidence names",
-      "built_in_rules": 74,
-      "unmapped_events": 1,
-      "passed": true,
-      "strict_validation": true,
-      "bundled_html_matches": true,
-      "report_sha256": "124633a3a6ffd7f01d42954cfb26e8187616629fc9398c2c9a40e451db3f644e"
+      "name": "release",
+      "arguments": [
+        "cargo",
+        "build",
+        "--locked",
+        "--release",
+        "-p",
+        "sarakura-cli"
+      ],
+      "exit_code": 0,
+      "test_count": 0
+    },
+    {
+      "name": "cli-help",
+      "arguments": [
+        "D:\\a\\sarakura\\sarakura\\target\\release\\sarakura.exe",
+        "--help"
+      ],
+      "exit_code": 0,
+      "test_count": 0
+    },
+    {
+      "name": "gb-analyze",
+      "arguments": [
+        "D:\\a\\sarakura\\sarakura\\target\\release\\sarakura.exe",
+        "gb",
+        "analyze",
+        "--metadata",
+        "D:\\a\\sarakura\\sarakura\\examples\\gb\\kitaqgb_build_metadata.json",
+        "--events",
+        "D:\\a\\sarakura\\sarakura\\examples\\gb\\kokura_diagnostic_events.jsonl",
+        "--out",
+        "D:\\a\\sarakura\\sarakura\\ci-output\\sarakura\\gb",
+        "--fail-on",
+        "never"
+      ],
+      "exit_code": 0,
+      "test_count": 0
+    },
+    {
+      "name": "gb-validate",
+      "arguments": [
+        "D:\\a\\sarakura\\sarakura\\target\\release\\sarakura.exe",
+        "validate",
+        "D:\\a\\sarakura\\sarakura\\ci-output\\sarakura\\gb\\ai_diagnostics.json",
+        "--strict"
+      ],
+      "exit_code": 0,
+      "test_count": 0
+    },
+    {
+      "name": "fc-analyze",
+      "arguments": [
+        "D:\\a\\sarakura\\sarakura\\target\\release\\sarakura.exe",
+        "fc",
+        "analyze",
+        "--metadata",
+        "D:\\a\\sarakura\\sarakura\\examples\\fc\\kitaqfc_build_metadata.json",
+        "--events",
+        "D:\\a\\sarakura\\sarakura\\examples\\fc\\kurosaki_diagnostic_events.jsonl",
+        "--out",
+        "D:\\a\\sarakura\\sarakura\\ci-output\\sarakura\\fc",
+        "--fail-on",
+        "never"
+      ],
+      "exit_code": 0,
+      "test_count": 0
+    },
+    {
+      "name": "fc-validate",
+      "arguments": [
+        "D:\\a\\sarakura\\sarakura\\target\\release\\sarakura.exe",
+        "validate",
+        "D:\\a\\sarakura\\sarakura\\ci-output\\sarakura\\fc\\ai_diagnostics.json",
+        "--strict"
+      ],
+      "exit_code": 0,
+      "test_count": 0
+    },
+    {
+      "name": "fds-analyze",
+      "arguments": [
+        "D:\\a\\sarakura\\sarakura\\target\\release\\sarakura.exe",
+        "fc",
+        "analyze",
+        "--metadata",
+        "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp067qr9rq\\meta.json",
+        "--events",
+        "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp067qr9rq\\events.jsonl",
+        "--out",
+        "C:\\Users\\RUNNER~1\\AppData\\Local\\Temp\\tmp067qr9rq\\report",
+        "--no-repro-bundle"
+      ],
+      "exit_code": 0,
+      "test_count": 0
     }
   ],
-  "source_changes": "English processing comments and HTML encoding of snapshot/trace display names.",
-  "scope": "Windows x64 CLI distribution. Executed synthetic GB/FC report generation and HTML/ZIP checks; no emulator or physical hardware execution is claimed."
+  "native_smoke_checks": [
+    {
+      "case": "cli-help",
+      "passed": true
+    },
+    {
+      "case": "gb-analyze-validate",
+      "passed": true
+    },
+    {
+      "case": "fc-analyze-validate",
+      "passed": true
+    }
+  ],
+  "scope": "Native CLI and synthetic tests; no physical hardware claim"
 }

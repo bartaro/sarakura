@@ -1,28 +1,27 @@
 {
   "project": "sarakura",
   "scope": "CLI executables only",
-  "source_commit": "fff1df3574354ca3030351999f99273b666eefb2",
-  "ci_run": "https://github.com/bartaro/kitaqgb-rust-validation-20261004/actions/runs/37136661755",
-  "ci_repository_private": true,
-  "validation_commit": "86765faefd124ad1f1d00cd6e76f00e0a34f09c6",
+  "source_commit": "de5afd73c7cd0620de617d36b5a5ed7827b5beab",
+  "ci_run": "https://github.com/bartaro/sarakura/actions/runs/41359320870",
+  "ci_repository_private": false,
+  "validation_commit": "de5afd73c7cd0620de617d36b5a5ed7827b5beab",
   "native_ci_passed": true,
   "source_files_sha256_verified": true,
-  "license_notices_verified_against_archives": true,
+  "checkout_bytes_verified_against_git_commit": true,
+  "dependency_lock_and_existing_license_notices_unchanged": true,
   "records": [
     {
       "path": "bin/macos-x86_64/sarakura",
-      "sha256": "e094e9fc5863b01515ee05b36612c4e36dfbfeb22628816ffabcd68c60ed21d8",
-      "bytes": 2606200,
-      "source_commit": "fff1df3574354ca3030351999f99273b666eefb2",
+      "sha256": "025a2f62f3b845950fbaef7165411c4668207b1bccc32356f0e20a647eb25b20",
+      "bytes": 2610296,
+      "source_commit": "de5afd73c7cd0620de617d36b5a5ed7827b5beab",
       "source_repository": "https://github.com/bartaro/sarakura",
       "system": "Darwin",
       "machine": "x86_64",
-      "platform": "macOS-15.7.9-x86_64-i386-64bit",
       "toolchain": "rustc 1.93.1 (01f6ddf75 2026-02-11)\nbinary: rustc\ncommit-hash: 01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\ncommit-date: 2026-02-11\nhost: x86_64-apple-darwin\nrelease: 1.93.1\nLLVM version: 21.1.8\n",
-      "apple_sdk": "15.5",
-      "test_count": 51,
+      "test_count": 52,
       "native_execution_verified": true,
-      "executable_dependencies": "/Users/runner/work/kitaqgb-rust-validation-20261004/kitaqgb-rust-validation-20261004/projects/sarakura/target/release/sarakura:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1351.0.0)\n",
+      "executable_dependencies": "/Users/runner/work/sarakura/sarakura/target/release/sarakura:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1351.0.0)\n",
       "format_verification": {
         "format": "Mach-O64 x86_64",
         "macos_deployment_targets": [
@@ -35,46 +34,28 @@
           "passed": true
         },
         {
-          "case": "gb-analyze",
+          "case": "gb-analyze-validate",
           "passed": true
         },
         {
-          "case": "gb-strict-validate",
-          "passed": true
-        },
-        {
-          "case": "gb-bundle-inspect",
-          "passed": true
-        },
-        {
-          "case": "fc-analyze",
-          "passed": true
-        },
-        {
-          "case": "fc-strict-validate",
-          "passed": true
-        },
-        {
-          "case": "fc-bundle-inspect",
+          "case": "fc-analyze-validate",
           "passed": true
         }
       ],
-      "verified_original_archive_sha256": "35f87c48ef96bedf79f55d1c35b4f1a959d4599d841d3a68e805302aa42f4dc0"
+      "verified_original_archive_sha256": "f0ed88724c9d040d3b62ddd1dde8bf2df3a69eb0201c9053407807446802499f"
     },
     {
       "path": "bin/macos-arm64/sarakura",
-      "sha256": "2a5e775c87efc6c4655fb284c56b5d19a1fad72308d1cdeed8f52c0fa97e61a1",
+      "sha256": "8e59c9ea8d33c41b3ec73ba310eb7721044be45090ce4888fd17eddf0739031e",
       "bytes": 2420976,
-      "source_commit": "fff1df3574354ca3030351999f99273b666eefb2",
+      "source_commit": "de5afd73c7cd0620de617d36b5a5ed7827b5beab",
       "source_repository": "https://github.com/bartaro/sarakura",
       "system": "Darwin",
       "machine": "arm64",
-      "platform": "macOS-26.6.2-arm64-arm-64bit",
       "toolchain": "rustc 1.93.1 (01f6ddf75 2026-02-11)\nbinary: rustc\ncommit-hash: 01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\ncommit-date: 2026-02-11\nhost: aarch64-apple-darwin\nrelease: 1.93.1\nLLVM version: 21.1.8\n",
-      "apple_sdk": "26.5",
-      "test_count": 51,
+      "test_count": 52,
       "native_execution_verified": true,
-      "executable_dependencies": "/Users/runner/work/kitaqgb-rust-validation-20261004/kitaqgb-rust-validation-20261004/projects/sarakura/target/release/sarakura:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
+      "executable_dependencies": "/Users/runner/work/sarakura/sarakura/target/release/sarakura:\n\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)\n",
       "format_verification": {
         "format": "Mach-O64 arm64",
         "macos_deployment_targets": [
@@ -87,46 +68,28 @@
           "passed": true
         },
         {
-          "case": "gb-analyze",
+          "case": "gb-analyze-validate",
           "passed": true
         },
         {
-          "case": "gb-strict-validate",
-          "passed": true
-        },
-        {
-          "case": "gb-bundle-inspect",
-          "passed": true
-        },
-        {
-          "case": "fc-analyze",
-          "passed": true
-        },
-        {
-          "case": "fc-strict-validate",
-          "passed": true
-        },
-        {
-          "case": "fc-bundle-inspect",
+          "case": "fc-analyze-validate",
           "passed": true
         }
       ],
-      "verified_original_archive_sha256": "d1f83a178980d3e1704915bbf71df45c13fcfaa1b98b1bcf67430a205a67611d"
+      "verified_original_archive_sha256": "585064fa3413c9092f09d4f8394918bf46661ee1f06cce523938b8b4bfd971b6"
     },
     {
       "path": "bin/linux-x86_64/sarakura",
-      "sha256": "ce9516a314991cbdd4e2849957fca3e21518a169a61ce75d9011bf3cac9ce02b",
-      "bytes": 2869488,
-      "source_commit": "fff1df3574354ca3030351999f99273b666eefb2",
+      "sha256": "99e9fd24a082d1ce26e95ab95fe9189b9c6479efde9c631d5eec53e8f248ac78",
+      "bytes": 2871216,
+      "source_commit": "de5afd73c7cd0620de617d36b5a5ed7827b5beab",
       "source_repository": "https://github.com/bartaro/sarakura",
       "system": "Linux",
       "machine": "x86_64",
-      "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
       "toolchain": "rustc 1.93.1 (01f6ddf75 2026-02-11)\nbinary: rustc\ncommit-hash: 01f6ddf7588f42ae2d7eb0a2f21d44e8e96674cf\ncommit-date: 2026-02-11\nhost: x86_64-unknown-linux-gnu\nrelease: 1.93.1\nLLVM version: 21.1.8\n",
-      "apple_sdk": null,
-      "test_count": 51,
+      "test_count": 52,
       "native_execution_verified": true,
-      "executable_dependencies": "\tlinux-vdso.so.1 (0x00007fec8f40e000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fec8f3ce000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fec8ec00000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007fec8f410000)\n",
+      "executable_dependencies": "\tlinux-vdso.so.1 (0x00007fb142ae8000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fb142aa8000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fb142400000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007fb142aea000)\n",
       "format_verification": {
         "format": "ELF64 x86_64",
         "glibc_symbol_version_tags": [
@@ -151,31 +114,15 @@
           "passed": true
         },
         {
-          "case": "gb-analyze",
+          "case": "gb-analyze-validate",
           "passed": true
         },
         {
-          "case": "gb-strict-validate",
-          "passed": true
-        },
-        {
-          "case": "gb-bundle-inspect",
-          "passed": true
-        },
-        {
-          "case": "fc-analyze",
-          "passed": true
-        },
-        {
-          "case": "fc-strict-validate",
-          "passed": true
-        },
-        {
-          "case": "fc-bundle-inspect",
+          "case": "fc-analyze-validate",
           "passed": true
         }
       ],
-      "verified_original_archive_sha256": "11e7c24a72ebeaeb1c6e39d1848fb4c311360e4f64e7369b0ff140e6700ca2d2"
+      "verified_original_archive_sha256": "457a8cb6c1cd843f69ddac6db7f271df3f367670f98f140d7b10d2332013ad77"
     }
   ]
 }
