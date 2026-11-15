@@ -15,7 +15,6 @@ v0.5は、v0.4の安定版をベースに、KOKURA/KUROSAKI実行ログをCIと�
   - `--fail-on never|error|warn|info` と `--enforce` によりCI gateとして使える。
 - `sarakura-core::normalize` を追加。
 - `sarakura-core::ci` を追加。
-- CLI smoke testを2件追加。
 - `schemas/sarakura_ci_summary.schema.json` を追加。
 - `schemas/sarakura_normalized_events.schema.json` を追加。
 
@@ -36,9 +35,3 @@ sarakura ci-summary \
   --fail-on error \
   --enforce
 ```
-
-## 完了条件
-
-- v0.4の既存テストが維持される。
-- GB catalog 48件、FC catalog 59件を維持する。
-- `normalize-events` と `ci-summary` のCLI smoke testが通る。

@@ -1,8 +1,6 @@
 # SARAKURA
 
-<!-- readme-language-links:start -->
-[English](README.md#english) | [日本語](README.md#japanese) | [한국어](README.ko.md) | **简体中文** | [繁體中文](README.zh-TW.md) | [Français](README.fr.md) | [Español](README.es.md) | [Deutsch](README.de.md)
-<!-- readme-language-links:end -->
+[English](README.md#english) | [日本語](README.md#japanese) | [한국어](README.ko.md) | **简体中文** | [繁體中文](README.zh-TW.md) | [Français](README.fr.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [Deutsch](README.de.md)
 
 [SARAKURA 简体中文手册](https://bartaro.github.io/kitaq-docs/zh-CN/sarakura.html)
 
@@ -18,33 +16,13 @@
 .\sarakura.exe --help
 ```
 
-如需只重新构建这个命令行工具，请运行 `.\scripts\build.ps1`，必要时添加 `-Offline`。脚本会将可执行文件复制到仓库根目录。详情请参阅[二进制构建记录](BINARY_BUILD.json)和[二进制依赖许可声明](BINARY_NOTICES.md)。
+如需只重新构建这个命令行工具，请运行 `.\scripts\build.ps1`，必要时添加 `-Offline`。脚本会将可执行文件复制到仓库根目录。详情请参阅[二进制依赖许可声明](BINARY_NOTICES.md)。
 
 项目自有代码的许可方为 **DAISUKE OBA**，采用MIT许可证。再分发时请一并提供 `LICENSE`、`LICENSE.ja`、`BINARY_NOTICES.md` 和 `licenses/` 目录。第三方库仍适用各自权利人的许可条件。
 
-## 从源码构建并开始使用
+## 预编译的Linux和macOS CLI
 
-重新构建需要近期稳定版Rust工具链。Windows还需要安装Visual Studio Build Tools及“使用C++的桌面开发”工作负载。
-
-```powershell
-.\scripts\build.ps1
-.\sarakura.exe --help
-```
-
-## 手册与许可证
-
-- [简体中文手册](https://bartaro.github.io/kitaq-docs/zh-CN/sarakura.html)
-- [英文手册](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [日文手册](https://bartaro.github.io/kitaq-docs/sarakura.html)
-- [供离线阅读的手册源码](https://github.com/bartaro/kitaq-docs)
-- [许可证](LICENSE) / [日文参考译文](LICENSE.ja)
-
-项目许可证不能替代第三方对字体、依赖库、标志或商标规定的条件。再分发时请保留随附声明。
-
-
-<!-- native-platform-binaries-20261004-zh-CN -->
-### 预编译的Linux和macOS CLI
-
-经过GitHub Actions运行验证的CLI文件位于以下文件夹中。运行CLI无需安装Rust、Python或.NET。Linux版本面向x86_64/glibc；macOS请选择与CPU匹配的版本。
+运行CLI无需安装Rust、Python或.NET。Linux版本面向x86_64/glibc；macOS请选择与CPU匹配的版本。
 
 | OS / CPU | CLI |
 | --- | --- |
@@ -63,4 +41,31 @@ chmod +x bin/macos-x86_64/sarakura
 ./bin/macos-x86_64/sarakura --help
 ```
 
-请在仓库根目录执行命令。重新分发时请保留LICENSE、LICENSE.ja、BINARY_NOTICES.md和licenses/。NATIVE_BINARIES.json记录了哈希值、依赖项、源代码版本和原生运行验证结果。
+请在仓库根目录执行命令。重新分发时请保留LICENSE、LICENSE.ja、BINARY_NOTICES.md和licenses/。
+
+## 首次使用
+
+```powershell
+.\sarakura.exe gb analyze --metadata examples/gb/e2e/metadata.json --events examples/gb/e2e/events.jsonl --out out/gb
+```
+
+此示例特意包含错误和警告，便于练习阅读诊断。打开输出目录中的 `report.html` 查看结果。
+
+
+## 从源码构建并开始使用
+
+重新构建需要近期稳定版Rust工具链。Windows还需要安装Visual Studio Build Tools及“使用C++的桌面开发”工作负载。
+
+```powershell
+.\scripts\build.ps1
+.\sarakura.exe --help
+```
+
+## 手册与许可证
+
+- [简体中文手册](https://bartaro.github.io/kitaq-docs/zh-CN/sarakura.html)
+- [英文手册](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [日文手册](https://bartaro.github.io/kitaq-docs/sarakura.html)
+- [供离线阅读的手册源码](https://github.com/bartaro/kitaq-docs)
+- [许可证](LICENSE) / [日文参考译文](LICENSE.ja)
+
+项目许可证不能替代第三方对字体、依赖库、标志或商标规定的条件。再分发时请保留随附声明。

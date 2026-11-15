@@ -1,8 +1,6 @@
 # SARAKURA
 
-<!-- readme-language-links:start -->
-[English](README.md#english) | [日本語](README.md#japanese) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Français](README.fr.md) | [Español](README.es.md) | **Deutsch**
-<!-- readme-language-links:end -->
+[English](README.md#english) | [日本語](README.md#japanese) | [한국어](README.ko.md) | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Français](README.fr.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | **Deutsch**
 
 **[SARAKURA · HTML-Handbuch](https://bartaro.github.io/kitaq-docs/de/sarakura.html)**
 
@@ -18,33 +16,13 @@ Im Stammverzeichnis des Repositorys liegt `sarakura.exe`, als Release für Windo
 .\sarakura.exe --help
 ```
 
-Mit `.\scripts\build.ps1` bauen Sie ausschließlich dieses Kommandozeilenprogramm neu; bei Bedarf ergänzen Sie `-Offline`. Das Skript kopiert die ausführbare Datei ins Stammverzeichnis. Grafische Oberflächen, Python-Erweiterungsmodule und DLLs der C-API gehören nicht zu diesem Paket ausführbarer Programme. Einzelheiten finden Sie im [Build-Nachweis](BINARY_BUILD.json) und in den [Lizenzhinweisen zu den Binärabhängigkeiten](BINARY_NOTICES.md).
+Mit `.\scripts\build.ps1` bauen Sie ausschließlich dieses Kommandozeilenprogramm neu; bei Bedarf ergänzen Sie `-Offline`. Das Skript kopiert die ausführbare Datei ins Stammverzeichnis. Grafische Oberflächen, Python-Erweiterungsmodule und DLLs der C-API gehören nicht zu diesem Paket ausführbarer Programme. Einzelheiten finden Sie im in den [Lizenzhinweisen zu den Binärabhängigkeiten](BINARY_NOTICES.md).
 
 Lizenzgeber des eigenständigen Projektcodes ist **DAISUKE OBA**. Dieser Code steht unter der MIT-Lizenz. Geben Sie bei einer Weiterverteilung `LICENSE`, `LICENSE.ja`, `BINARY_NOTICES.md` und das Verzeichnis `licenses/` mit. Für Bibliotheken Dritter gelten deren jeweilige Rechteinhaber und Lizenzbedingungen.
 
-## Selbst kompilieren und starten
+## Vorgefertigte CLI für Linux und macOS
 
-Verwenden Sie eine aktuelle stabile Rust-Toolchain. Installieren Sie unter Windows außerdem Visual Studio Build Tools mit dem Workload für die Desktopentwicklung mit C++.
-
-```powershell
-.\scripts\build.ps1
-.\sarakura.exe --help
-```
-
-## Handbücher und Lizenzen
-
-- [SARAKURA · HTML-Handbuch](https://bartaro.github.io/kitaq-docs/de/sarakura.html)
-- [Englisches Handbuch](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [Japanisches Handbuch](https://bartaro.github.io/kitaq-docs/sarakura.html)
-- [Handbuchquellen zum Offline-Lesen](https://github.com/bartaro/kitaq-docs)
-- [Lizenz](LICENSE) / [Japanische Übersetzung zur Orientierung](LICENSE.ja)
-
-Die Projektlizenz ersetzt keine Bedingungen Dritter für Abhängigkeiten, Logos oder Marken. Behalten Sie bei einer Weitergabe die beigefügten Hinweise bei.
-
-
-<!-- native-platform-binaries-20261004-de -->
-### Vorgefertigte CLI für Linux und macOS
-
-Die in GitHub Actions durch Ausführung geprüften CLI-Dateien befinden sich in den folgenden Ordnern. Für ihre Ausführung sind weder Rust noch Python noch .NET erforderlich. Die Linux-Version ist für x86_64/glibc vorgesehen; wählen Sie unter macOS die passende CPU-Version.
+Für ihre Ausführung sind weder Rust noch Python noch .NET erforderlich. Die Linux-Version ist für x86_64/glibc vorgesehen; wählen Sie unter macOS die passende CPU-Version.
 
 | OS / CPU | CLI |
 | --- | --- |
@@ -63,4 +41,31 @@ chmod +x bin/macos-x86_64/sarakura
 ./bin/macos-x86_64/sarakura --help
 ```
 
-Führen Sie die Befehle im Stammverzeichnis des Repositorys aus. Bewahren Sie bei der Weitergabe LICENSE, LICENSE.ja, BINARY_NOTICES.md und licenses/ auf. NATIVE_BINARIES.json enthält Prüfsummen, Abhängigkeiten, Quellcoderevisionen und die Ergebnisse der nativen Ausführungsprüfungen.
+Führen Sie die Befehle im Stammverzeichnis des Repositorys aus. Bewahren Sie bei der Weitergabe LICENSE, LICENSE.ja, BINARY_NOTICES.md und licenses/ auf.
+
+## Erste Verwendung
+
+```powershell
+.\sarakura.exe gb analyze --metadata examples/gb/e2e/metadata.json --events examples/gb/e2e/events.jsonl --out out/gb
+```
+
+Dieses Beispiel enthält absichtlich einen Fehler und eine Warnung. Öffnen Sie `report.html` im Ausgabeordner, um die Diagnosen anzusehen.
+
+
+## Selbst kompilieren und starten
+
+Verwenden Sie eine aktuelle stabile Rust-Toolchain. Installieren Sie unter Windows außerdem Visual Studio Build Tools mit dem Workload für die Desktopentwicklung mit C++.
+
+```powershell
+.\scripts\build.ps1
+.\sarakura.exe --help
+```
+
+## Handbücher und Lizenzen
+
+- [SARAKURA · HTML-Handbuch](https://bartaro.github.io/kitaq-docs/de/sarakura.html)
+- [Englisches Handbuch](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [Japanisches Handbuch](https://bartaro.github.io/kitaq-docs/sarakura.html)
+- [Handbuchquellen zum Offline-Lesen](https://github.com/bartaro/kitaq-docs)
+- [Lizenz](LICENSE) / [Japanische Übersetzung zur Orientierung](LICENSE.ja)
+
+Die Projektlizenz ersetzt keine Bedingungen Dritter für Abhängigkeiten, Logos oder Marken. Behalten Sie bei einer Weitergabe die beigefügten Hinweise bei.

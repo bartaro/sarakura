@@ -1,57 +1,35 @@
-# SARAKURA native CLI
+# SARAKURA — Downloads / ダウンロード
 
-
-<!-- native-platform-binaries-20261004-en -->
-### Prebuilt Linux and macOS CLI
-
-Native CLI files verified in GitHub Actions are available in the folders below. Rust, Python and .NET are not required to run the CLI. The Linux build targets x86_64/glibc; choose the matching CPU for macOS.
+Choose the executable for your OS and CPU. Keep the license notices with it.
+OSとCPUに合う実行ファイルを選び、ライセンス表記も一緒に保存してください。
 
 | OS / CPU | CLI |
-| --- | --- |
-| Linux x86_64 (glibc) | [bin/linux-x86_64/sarakura](../bin/linux-x86_64/sarakura) |
-| macOS ARM64 | [bin/macos-arm64/sarakura](../bin/macos-arm64/sarakura) |
-| macOS Intel | [bin/macos-x86_64/sarakura](../bin/macos-x86_64/sarakura) |
+|---|---|
+| Windows x64 | [sarakura](../sarakura.exe) |
+| Linux x86_64 (glibc) | [sarakura](linux-x86_64/sarakura) |
+| macOS Apple Silicon | [sarakura](macos-arm64/sarakura) |
+| macOS Intel | [sarakura](macos-x86_64/sarakura) |
+
+Linux: x86_64/glibc, GLIBC_2.34 symbol requirements.
+macOS deployment targets: ARM64 11.0, Intel 10.12.
+
+## Start / 起動
+
+Run from the repository root. / リポジトリのルートで実行します。
+
+```powershell
+.\sarakura.exe --help
+```
 
 ```sh
 chmod +x bin/linux-x86_64/sarakura
 ./bin/linux-x86_64/sarakura --help
-
-chmod +x bin/macos-arm64/sarakura
-./bin/macos-arm64/sarakura --help
-
-chmod +x bin/macos-x86_64/sarakura
-./bin/macos-x86_64/sarakura --help
 ```
 
-Run the commands from the repository root. For redistribution, retain LICENSE, LICENSE.ja, BINARY_NOTICES.md and licenses/. NATIVE_BINARIES.json records hashes, dependencies, source revisions and native execution checks.
+On macOS, use the matching macOS folder in the same commands.
+macOSでは対応するmacOS用フォルダーへ読み替えます。
 
+[Manual / マニュアル](../README.md) · [License](../LICENSE) · [Binary notices](../BINARY_NOTICES.md)
 
-<!-- native-platform-binaries-20261004-ja -->
-### ビルド済みLinux・macOS CLI
-
-GitHub Actionsで実行検証したCLIを下記フォルダに配置しています。CLIの実行にRust・Python・.NETは不要です。Linux版はx86_64/glibc向けです。macOSではCPUに合う版を選んでください。
-
-| OS / CPU | CLI |
-| --- | --- |
-| Linux x86_64 (glibc) | [bin/linux-x86_64/sarakura](../bin/linux-x86_64/sarakura) |
-| macOS ARM64 | [bin/macos-arm64/sarakura](../bin/macos-arm64/sarakura) |
-| macOS Intel | [bin/macos-x86_64/sarakura](../bin/macos-x86_64/sarakura) |
-
-```sh
-chmod +x bin/linux-x86_64/sarakura
-./bin/linux-x86_64/sarakura --help
-
-chmod +x bin/macos-arm64/sarakura
-./bin/macos-arm64/sarakura --help
-
-chmod +x bin/macos-x86_64/sarakura
-./bin/macos-x86_64/sarakura --help
-```
-
-コマンドはリポジトリ直下で実行します。再配布時はLICENSE、LICENSE.ja、BINARY_NOTICES.md、licenses/も保持してください。NATIVE_BINARIES.jsonにハッシュ、依存物、ソースのリビジョン、ネイティブ実行検証の記録があります。
-
-Linux: x86_64/glibc, GLIBC_2.34 symbol requirements. Native execution was verified on the platform recorded in NATIVE_BINARIES.json.
-
-macOS deployment targets: ARM64 11.0, Intel 10.12; execution was verified on the newer native CI hosts recorded in NATIVE_BINARIES.json.
-
-Rebuild the CLI only with `cargo build --locked --release -p sarakura-cli`; Python extension build configuration is separate.
+Keep LICENSE, LICENSE.ja, BINARY_NOTICES.md and licenses/ when redistributing.
+再配布時は LICENSE、LICENSE.ja、BINARY_NOTICES.md、licenses/ を同梱してください。

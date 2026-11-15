@@ -1,8 +1,6 @@
 # SARAKURA
 
-<!-- readme-language-links:start -->
-[English](README.md#english) | [日本語](README.md#japanese) | **한국어** | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Français](README.fr.md) | [Español](README.es.md) | [Deutsch](README.de.md)
-<!-- readme-language-links:end -->
+[English](README.md#english) | [日本語](README.md#japanese) | **한국어** | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [Français](README.fr.md) | [Español](README.es.md) | [Português (Brasil)](README.pt-BR.md) | [Deutsch](README.de.md)
 
 **[SARAKURA · HTML 설명서](https://bartaro.github.io/kitaq-docs/ko/sarakura.html)**
 
@@ -18,33 +16,13 @@ KITAQGB/KOKURA와 KITAQFC/KUROSAKI의 진단 데이터를 분석하고 영어 �
 .\sarakura.exe --help
 ```
 
-이 명령줄 도구만 다시 빌드하려면 `.\scripts\build.ps1`을 실행하세요. 필요하면 `-Offline`을 추가할 수 있습니다. 스크립트가 실행 파일을 저장소 최상위 폴더로 복사합니다. GUI, Python 확장 모듈, C API DLL은 이 실행 파일 배포에 포함되지 않습니다. 자세한 내용은 [바이너리 빌드 기록](BINARY_BUILD.json)과 [바이너리 의존성 라이선스 고지](BINARY_NOTICES.md)를 확인하세요.
+이 명령줄 도구만 다시 빌드하려면 `.\scripts\build.ps1`을 실행하세요. 필요하면 `-Offline`을 추가할 수 있습니다. 스크립트가 실행 파일을 저장소 최상위 폴더로 복사합니다. GUI, Python 확장 모듈, C API DLL은 이 실행 파일 배포에 포함되지 않습니다. 자세한 내용은 과 [바이너리 의존성 라이선스 고지](BINARY_NOTICES.md)를 확인하세요.
 
 프로젝트 자체 코드의 라이선스 제공자는 **DAISUKE OBA**이며, MIT 라이선스로 배포합니다. 재배포할 때는 `LICENSE`, `LICENSE.ja`, `BINARY_NOTICES.md`, `licenses/` 폴더를 함께 포함하세요. 외부 라이브러리에는 각 저작권자의 라이선스 조건이 적용됩니다.
 
-## 직접 빌드하고 실행하기
+## 빌드된 Linux 및 macOS CLI
 
-다시 빌드하려면 최신 안정 버전의 Rust 도구 모음을 사용하세요. Windows에서는 Visual Studio Build Tools와 ‘C++를 사용한 데스크톱 개발’ 워크로드도 필요합니다.
-
-```powershell
-.\scripts\build.ps1
-.\sarakura.exe --help
-```
-
-## 설명서와 라이선스
-
-- [SARAKURA · HTML 설명서](https://bartaro.github.io/kitaq-docs/ko/sarakura.html)
-- [영어 설명서](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [일본어 설명서](https://bartaro.github.io/kitaq-docs/sarakura.html)
-- [오프라인 열람용 설명서 소스](https://github.com/bartaro/kitaq-docs)
-- [라이선스](LICENSE) / [일본어 참고 번역](LICENSE.ja)
-
-프로젝트 라이선스가 외부 의존성, 로고, 상표에 관한 제3자의 조건을 대신하지는 않습니다. 재배포할 때 동봉된 고지를 유지하세요.
-
-
-<!-- native-platform-binaries-20261004-ko -->
-### 빌드된 Linux 및 macOS CLI
-
-GitHub Actions에서 실행을 검증한 CLI 파일은 아래 폴더에 있습니다. CLI 실행에는 Rust, Python, .NET이 필요하지 않습니다. Linux 빌드는 x86_64/glibc용이며, macOS에서는 CPU에 맞는 버전을 선택하세요.
+CLI 실행에는 Rust, Python, .NET이 필요하지 않습니다. Linux 빌드는 x86_64/glibc용이며, macOS에서는 CPU에 맞는 버전을 선택하세요.
 
 | OS / CPU | CLI |
 | --- | --- |
@@ -63,4 +41,31 @@ chmod +x bin/macos-x86_64/sarakura
 ./bin/macos-x86_64/sarakura --help
 ```
 
-저장소 루트에서 명령을 실행하세요. 재배포할 때는 LICENSE, LICENSE.ja, BINARY_NOTICES.md, licenses/를 유지하세요. NATIVE_BINARIES.json에는 해시, 의존성, 소스 리비전, 네이티브 실행 검증 기록이 있습니다.
+저장소 루트에서 명령을 실행하세요. 재배포할 때는 LICENSE, LICENSE.ja, BINARY_NOTICES.md, licenses/를 유지하세요.
+
+## 처음 사용하기
+
+```powershell
+.\sarakura.exe gb analyze --metadata examples/gb/e2e/metadata.json --events examples/gb/e2e/events.jsonl --out out/gb
+```
+
+이 예제에는 진단을 살펴볼 수 있도록 오류와 경고가 포함되어 있습니다. 출력 폴더의 `report.html`을 여세요.
+
+
+## 직접 빌드하고 실행하기
+
+다시 빌드하려면 최신 안정 버전의 Rust 도구 모음을 사용하세요. Windows에서는 Visual Studio Build Tools와 ‘C++를 사용한 데스크톱 개발’ 워크로드도 필요합니다.
+
+```powershell
+.\scripts\build.ps1
+.\sarakura.exe --help
+```
+
+## 설명서와 라이선스
+
+- [SARAKURA · HTML 설명서](https://bartaro.github.io/kitaq-docs/ko/sarakura.html)
+- [영어 설명서](https://bartaro.github.io/kitaq-docs/en/sarakura.html) / [일본어 설명서](https://bartaro.github.io/kitaq-docs/sarakura.html)
+- [오프라인 열람용 설명서 소스](https://github.com/bartaro/kitaq-docs)
+- [라이선스](LICENSE) / [일본어 참고 번역](LICENSE.ja)
+
+프로젝트 라이선스가 외부 의존성, 로고, 상표에 관한 제3자의 조건을 대신하지는 않습니다. 재배포할 때 동봉된 고지를 유지하세요.
